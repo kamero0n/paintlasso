@@ -1,3 +1,5 @@
+require "assets/lassoObjects"
+
 local WINDOWWIDTH, WINDOWHEIGHT = love.graphics.getDimensions()
 
 -- check if mouse is being dragged
@@ -20,6 +22,9 @@ function love.load()
 
     -- create canvas
     gameCanvas = love.graphics.newCanvas(WINDOWWIDTH, WINDOWHEIGHT)
+
+    -- add an object
+    object1 = SelectableObject(WINDOWWIDTH/2, WINDOWHEIGHT/2)
 end
 
 function love.update(dt)
@@ -47,6 +52,18 @@ end
 
 function love.mousereleased(x, y, button, istouch)
     isMouseDragging = false
+
+    local pos = {
+        x = math.min(firstCorner.x, secondCorner.x),
+        y = math.min(firstCorner.y, secondCorner.y),
+        width = math.abs(firstCorner.x - secondCorner.x),
+        height = math.abs(firstCorner.y - secondCorner.y),
+    }
+
+    if pos.x <= object1.x and object1.x + object1.width <= pos.x + pos.width
+        and pos.y <= object1.y and object1.y + object1.height <= pos.y + pos.height then
+        object1.isSelected = true
+    end
 end
 
 function love.draw()
@@ -55,6 +72,8 @@ function love.draw()
     love.graphics.clear(0, 0, 0, 1)
 
     love.graphics.setColor(1, 1, 1, 1) -- set to white
+
+    object1.draw(object1)
 
     if isMouseDragging then
         local pos = {
@@ -73,3 +92,5 @@ function love.draw()
     -- draw the canvas
     love.graphics.draw(gameCanvas, 0, 0);
 end
+
+
