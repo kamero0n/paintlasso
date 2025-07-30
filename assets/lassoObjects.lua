@@ -14,6 +14,9 @@ function SelectableObject:new(x, y, width, height, color)
 
 end
 
+function SelectableObject:update(dt)
+end
+
 function SelectableObject:draw()
     if self.isSelected then
         -- draw selection outline

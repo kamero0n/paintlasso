@@ -31,7 +31,7 @@ function love.update(dt)
 end
 
 function love.mousepressed(x, y, button, istouch)
-    if button == 1 then
+    if button == 1 and object1.isSelected == false then
         isMouseDragging = true
 
         firstCorner.x = x
@@ -40,6 +40,19 @@ function love.mousepressed(x, y, button, istouch)
         secondCorner.x = x
         secondCorner.y = y
     end
+
+    -- check if we have an object selected
+    if object1.isSelected == true then
+        -- check if we click inside
+        if object1.x <= x and x <= object1.x + object1.width
+            and object1.y <= y and y <= object1.y + object1.height
+        then
+            -- nothing
+        else
+            object1.isSelected = false
+        end
+
+    end
 end
 
 function love.mousemoved(x, y, dx, dy, istouch)
@@ -47,23 +60,26 @@ function love.mousemoved(x, y, dx, dy, istouch)
         secondCorner.x = x
         secondCorner.y = y
     end
-
 end
 
 function love.mousereleased(x, y, button, istouch)
-    isMouseDragging = false
+    if isMouseDragging then
+            local pos = {
+                x = math.min(firstCorner.x, secondCorner.x),
+                y = math.min(firstCorner.y, secondCorner.y),
+                width = math.abs(firstCorner.x - secondCorner.x),
+                height = math.abs(firstCorner.y - secondCorner.y),
+            }
 
-    local pos = {
-        x = math.min(firstCorner.x, secondCorner.x),
-        y = math.min(firstCorner.y, secondCorner.y),
-        width = math.abs(firstCorner.x - secondCorner.x),
-        height = math.abs(firstCorner.y - secondCorner.y),
-    }
+            if pos.x <= object1.x and object1.x + object1.width <= pos.x + pos.width
+                and pos.y <= object1.y and object1.y + object1.height <= pos.y + pos.height then
 
-    if pos.x <= object1.x and object1.x + object1.width <= pos.x + pos.width
-        and pos.y <= object1.y and object1.y + object1.height <= pos.y + pos.height then
-        object1.isSelected = true
+                object1.isSelected = true
+            end
     end
+    
+    
+    isMouseDragging = false
 end
 
 function love.draw()
