@@ -35,7 +35,27 @@ luac.out
 *.exe
 *.out
 *.app
-*.i*86
-*.x86_64
-*.hex
+
+# LÖVE2D distribution files
+dist/
+builds/
+
+# Editor/IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
 
