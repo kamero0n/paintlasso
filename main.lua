@@ -6,8 +6,14 @@ local WINDOWWIDTH, WINDOWHEIGHT = love.graphics.getDimensions()
 local isMouseDragging = false
 
 -- positions for lasso loop
-local firstCorner
-local secondCorner
+local firstCorner, secondCorner
+
+-- offset values for selected object vs mouse
+local offsetX, offsetY
+
+-- check the lasso tool state
+-- are we "selecting", "dragging", "scaling", or "rotating"
+local lasso_state = "selecting"
 
 function love.load()
     firstCorner = {
@@ -47,23 +53,33 @@ function love.mousepressed(x, y, button, istouch)
         if object1.x <= x and x <= object1.x + object1.width
             and object1.y <= y and y <= object1.y + object1.height
         then
-            -- nothing
+            lasso_state = "dragging"
+            isMouseDragging = true
+
+            offsetX = x - object1.x
+            offsetY = y - object1.y
         else
             object1.isSelected = false
+            lasso_state = "selecting"
         end
 
     end
 end
 
 function love.mousemoved(x, y, dx, dy, istouch)
-    if isMouseDragging then
+    if isMouseDragging and lasso_state == "selecting" then
         secondCorner.x = x
         secondCorner.y = y
+    end
+
+    if isMouseDragging and lasso_state == "dragging" then
+        object1.x = x - offsetX
+        object1.y = y - offsetY
     end
 end
 
 function love.mousereleased(x, y, button, istouch)
-    if isMouseDragging then
+    if isMouseDragging and lasso_state == "selecting" then
             local pos = {
                 x = math.min(firstCorner.x, secondCorner.x),
                 y = math.min(firstCorner.y, secondCorner.y),
@@ -91,7 +107,7 @@ function love.draw()
 
     object1.draw(object1)
 
-    if isMouseDragging then
+    if isMouseDragging and lasso_state == "selecting" then
         local pos = {
             x = math.min(firstCorner.x, secondCorner.x),
             y = math.min(firstCorner.y, secondCorner.y)
