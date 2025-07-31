@@ -1,4 +1,5 @@
-require "assets/lassoObjects"
+require "assets/tools/lassoObjects"
+require "assets/levels/level1"
 
 local WINDOWWIDTH, WINDOWHEIGHT = love.graphics.getDimensions()
 
@@ -31,9 +32,28 @@ function love.load()
 
     -- add an object
     object1 = SelectableObject(WINDOWWIDTH/2, WINDOWHEIGHT/2)
+
+    -- player
+    player = {
+        x = 0,
+        y = WINDOWHEIGHT - 350,
+        width = 30, 
+        height = 50,
+        speed = 400
+    }
 end
 
 function love.update(dt)
+    -- player movement
+    if love.keyboard.isDown("a") or love.keyboard.isDown("left") then
+        player.x = player.x - player.speed * dt
+    end
+    if love.keyboard.isDown("d") or love.keyboard.isDown("right") then
+        player.x = player.x + player.speed * dt
+    end
+
+    -- first level
+    Level1.play(player, dt)
 end
 
 function love.mousepressed(x, y, button, istouch)
@@ -62,7 +82,6 @@ function love.mousepressed(x, y, button, istouch)
             object1.isSelected = false
             lasso_state = "selecting"
         end
-
     end
 end
 
@@ -94,7 +113,6 @@ function love.mousereleased(x, y, button, istouch)
             end
     end
     
-    
     isMouseDragging = false
 end
 
@@ -103,10 +121,14 @@ function love.draw()
     love.graphics.setCanvas(gameCanvas)
     love.graphics.clear(0, 0, 0, 1)
 
+    -- test object
+    -- object1.draw(object1)
+
+    -- draw player
+    love.graphics.setColor(0, 0, 1, 1)
+    love.graphics.rectangle("fill", player.x, player.y, player.width, player.height)
+
     love.graphics.setColor(1, 1, 1, 1) -- set to white
-
-    object1.draw(object1)
-
     if isMouseDragging and lasso_state == "selecting" then
         local pos = {
             x = math.min(firstCorner.x, secondCorner.x),
@@ -119,8 +141,9 @@ function love.draw()
         love.graphics.rectangle("line", pos.x, pos.y, width, height)
     end
 
-    love.graphics.setCanvas()
+    Level1.draw()
 
+    love.graphics.setCanvas()
     -- draw the canvas
     love.graphics.draw(gameCanvas, 0, 0);
 end
