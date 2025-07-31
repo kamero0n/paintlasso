@@ -1,4 +1,4 @@
-Object = require ("classic")
+Object = require ("assets/libraries/classic")
 
 SelectableObject = Object:extend(Object)
 
@@ -10,11 +10,34 @@ function SelectableObject:new(x, y, width, height, color)
     self.color = color or {1, 1, 1}
     self.isSelected = false
 
-    -- for drag
-
+    -- simple physics
+    self.velocityY = 0
+    self.gravity = 800
+    self.isGrounded = false
+    self.groundY = love.graphics.getHeight() - 300
 end
 
-function SelectableObject:update(dt)
+function SelectableObject:update(dt, isBeingDragged)
+    if not self.isSelected and not isBeingDragged then
+        -- check if above ground
+        if self.y + self.height < self.groundY then
+            self.isGrounded = false
+
+            -- apply gravity
+            self.velocityY = self.velocityY + self.gravity * dt
+            self.y = self.y + self.velocityY * dt
+        else
+            if not self.isGrounded then
+                self.y = self.groundY - self.height
+                self.velocityY = 0
+                self.isGrounded = true
+            end
+        end
+    else
+        -- reset velocity
+        self.velocityY = 0
+        self.isGrounded = false
+    end
 end
 
 function SelectableObject:draw()
