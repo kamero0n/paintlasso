@@ -16,6 +16,9 @@ local offsetX, offsetY
 -- are we "selecting", "dragging", "scaling", or "rotating"
 local lasso_state = "selecting"
 
+local selectedObject = nil
+local allObjects = {}
+
 -- CAMERA
 local camera = {
     x = 0,
@@ -37,7 +40,7 @@ function love.load()
     gameCanvas = love.graphics.newCanvas(WINDOWWIDTH, WINDOWHEIGHT)
 
     -- add an object
-    object1 = SelectableObject(WINDOWWIDTH/2, WINDOWHEIGHT/2)
+    object1 = SelectableObject(WINDOWWIDTH/2, WINDOWHEIGHT/2, 30, 30)
 
     -- player
     player = {
@@ -47,6 +50,14 @@ function love.load()
         height = 50,
         speed = 400
     }
+
+    Level1.init()
+
+    allObjects = {object1}
+    for i, obj in ipairs(Level1.getObjects()) do
+        table.insert(allObjects, obj)
+    end
+
 end
 
 function updateCamera()
@@ -59,7 +70,7 @@ function updateCamera()
         camera.x = 0
     end
     if camera.x > WINDOWWIDTH then
-        camera.x = WINDOWWIDTH
+        --camera.x = WINDOWWIDTH
     end
 end
 
@@ -76,8 +87,13 @@ function love.update(dt)
     updateCamera()
 
     -- update obj w/ gravity 
-    local isBeingDragged = (lasso_state == "dragging" and isMouseDragging)
-    object1:update(dt, isBeingDragged, isSelected)
+    -- local isBeingDragged = (lasso_state == "dragging" and isMouseDragging)
+    -- object1:update(dt, isBeingDragged, isSelected)
+    -- update all objects
+    for i, obj in ipairs(allObjects) do
+        local isBeingDragged = (selectedObject == obj and lasso_state == "dragging" and isMouseDragging)
+        obj:update(dt, isBeingDragged)
+    end
 
     -- first level
     Level1.play(player, dt)
@@ -87,31 +103,33 @@ function love.mousepressed(x, y, button, istouch)
     local worldX = x + camera.x
     local worldY = y + camera.y
 
-    if button == 1 and object1.isSelected == false then
-        isMouseDragging = true
+    if button == 1  then
+        -- check if clicking on selected object first
+        if selectedObject and selectedObject.isSelected then
+            if selectedObject.x <= worldX and worldX <= selectedObject.x + selectedObject.width
+                and selectedObject.y <= worldY and worldY <= selectedObject.y + selectedObject.height
+            then
+                lasso_state = "dragging"
+                isMouseDragging = true
+                offsetX = worldX - selectedObject.x
+                offsetY = worldY - selectedObject.y
 
+                return
+            else
+                -- clicking outside
+                selectedObject.isSelected = false
+                selectedObject = nil
+                lasso_state = "selecting"
+            end
+        end
+
+        -- start lasso
+        isMouseDragging = true
         firstCorner.x = worldX
         firstCorner.y = worldY
 
         secondCorner.x = worldX
         secondCorner.y = worldY
-    end
-
-    -- check if we have an object selected
-    if object1.isSelected == true then
-        -- check if we click inside
-        if object1.x <= worldX and worldX <= object1.x + object1.width
-            and object1.y <= worldY and worldY <= object1.y + object1.height
-        then
-            lasso_state = "dragging"
-            isMouseDragging = true
-
-            offsetX = worldX - object1.x
-            offsetY = worldY - object1.y
-        else
-            object1.isSelected = false
-            lasso_state = "selecting"
-        end
     end
 end
 
@@ -125,8 +143,8 @@ function love.mousemoved(x, y, dx, dy, istouch)
     end
 
     if isMouseDragging and lasso_state == "dragging" then
-        object1.x = worldX - offsetX
-        object1.y = worldY - offsetY
+        selectedObject.x = worldX - offsetX
+        selectedObject.y = worldY - offsetY
     end
 end
 
@@ -138,11 +156,21 @@ function love.mousereleased(x, y, button, istouch)
                 width = math.abs(firstCorner.x - secondCorner.x),
                 height = math.abs(firstCorner.y - secondCorner.y),
             }
+            
+            -- check all objects for selection
+            for i, obj in ipairs(allObjects) do 
+                if pos.x <= obj.x and obj.x + obj.width <= pos.x + pos.width
+                    and pos.y <= obj.y and obj.y + obj.height <= pos.y + pos.height
+                then
+                    -- deselect
+                    if selectedObject then
+                        selectedObject.isSelected = false
+                    end
 
-            if pos.x <= object1.x and object1.x + object1.width <= pos.x + pos.width
-                and pos.y <= object1.y and object1.y + object1.height <= pos.y + pos.height then
-
-                object1.isSelected = true
+                    obj.isSelected = true
+                    selectedObject = obj
+                    break
+                end
             end
     end
     
@@ -159,7 +187,7 @@ function love.draw()
     love.graphics.translate(-camera.x, -camera.y)
 
     -- draw player
-    love.graphics.setColor(0, 0, 1, 1)
+    love.graphics.setColor(0, 0, 0.8, 1)
     love.graphics.rectangle("fill", player.x, player.y, player.width, player.height)
 
     -- draw world elements
