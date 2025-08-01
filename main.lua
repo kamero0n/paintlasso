@@ -1,5 +1,5 @@
 require "assets/tools/lassoObjects"
-require "assets/levels/level1"
+require "assets/levels/testLevel"
 anim8 = require 'assets/libraries/anim8'
 
 local WINDOWWIDTH, WINDOWHEIGHT = love.graphics.getDimensions()
@@ -65,9 +65,9 @@ function love.load()
             cursor.animations.leftClick = anim8.newAnimation(cursor.grid('1-4', 1), 0.2)
     cursor.x, cursor.y =  love.mouse.getPosition()
 
-    Level1.init()
+    TestLevel.init()
 
-    for i, obj in ipairs(Level1.getObjects()) do
+    for i, obj in ipairs(TestLevel.getObjects()) do
         table.insert(allObjects, obj)
     end
 
@@ -100,7 +100,7 @@ function love.update(dt)
     updateCamera()
 
     -- first level
-    Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, allObjects)
+    TestLevel.play(player, dt, selectedObjects, lasso_state, isMouseDragging, allObjects)
 end
 
 function love.mousepressed(x, y, button, istouch)
@@ -270,7 +270,7 @@ function love.draw()
     love.graphics.translate(-camera.x, -camera.y)
 
     -- draw world elements
-    Level1.draw()
+    TestLevel.draw()
 
     love.graphics.setColor(1, 1, 1, 1) -- set to white
     if isMouseDragging and lasso_state == "selecting" then
