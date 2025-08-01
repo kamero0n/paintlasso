@@ -219,10 +219,6 @@ function love.draw()
     love.graphics.push()
     love.graphics.translate(-camera.x, -camera.y)
 
-    -- draw player
-    love.graphics.setColor(0, 0, 0.8, 1)
-    love.graphics.rectangle("fill", player.x, player.y, player.width, player.height)
-
     -- draw world elements
     Level1.draw()
 
@@ -239,6 +235,11 @@ function love.draw()
         love.graphics.rectangle("line", pos.x, pos.y, width, height)
     end
 
+    -- draw player
+    love.graphics.setColor(0, 0, 0.8, 1)
+    love.graphics.rectangle("fill", player.x, player.y, player.width, player.height)
+
+    love.graphics.setColor(1, 1, 1, 1)
     -- remove camera transform
     love.graphics.pop()
 

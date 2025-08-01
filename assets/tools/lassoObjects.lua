@@ -19,21 +19,6 @@ end
 
 function SelectableObject:update(dt, isBeingDragged, allObjects)
     if not self.isSelected and not isBeingDragged then
-        -- check if above ground
-        -- if self.y + self.height < self.groundY then
-        --     self.isGrounded = false
-
-        --     -- apply gravity
-        --     self.velocityY = self.velocityY + self.gravity * dt
-        --     self.y = self.y + self.velocityY * dt
-        -- else
-        --     if not self.isGrounded then
-        --         self.y = self.groundY - self.height
-        --         self.velocityY = 0
-        --         self.isGrounded = true
-        --     end
-        -- end
-
         -- check if above ground or other objects
         local landingY = self.groundY
         
