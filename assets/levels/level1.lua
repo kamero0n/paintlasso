@@ -6,8 +6,10 @@ local WINDOWWIDTH, WINDOWHEIGHT = love.graphics.getDimensions()
 -- first puzzle stuff
 local dogPoop, trashCan, invisibleWall
 local dogPoopCleaned = false
-local PROGRESS_GATE_X = 600
+local PROGRESS_GATE_X = 750
 local trashThreshold = 40
+local poopThreshold = 50
+
 
 function Level1.init(world)
     -- create ground collider
@@ -32,29 +34,15 @@ function Level1.init(world)
 
 end
 
-local function checkPoopToTrash(poop, trash)
-    local poopCenterX = poop.x + poop.width/2
-    local poopCenterY = poop.y + poop.height/2
-    local trashCenterX = trash.x + trash.width/2
-    local trashCenterY = trash.y + trash.height/2
+local function checkDist(obj1, obj2, threshold)
+    local obj1CenterX = obj1.x + obj1.width/2
+    local obj1CenterY = obj1.y + obj1.height/2
+    local obj2CenterX = obj2.x + obj2.width/2
+    local obj2CenterY = obj2.y + obj2.height/2
 
-    local dist = math.sqrt((poopCenterX - trashCenterX)^2 + (poopCenterY - trashCenterY)^2)
+    local dist = math.sqrt((obj1CenterX - obj2CenterX)^2 + (obj1CenterY - obj2CenterY)^2)
 
-    if dist < trashThreshold then
-        dogPoopCleaned = true
-
-        -- remove invisibleWall
-        if invisibleWall then
-            invisibleWall:destroy()
-            invisibleWall = nil
-        end
-
-        -- remove poop
-        if dogPoop.body then
-            dogPoop.body:destroy()
-            dogPoop.body = nil
-        end
-    end
+    return dist < threshold
 end
 
 
@@ -71,7 +59,26 @@ function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
 
     -- check if poop has been picked up
     if not dogPoopCleaned then
-        checkPoopToTrash(dogPoop, trashCan)
+        local checkPoopToTrash = checkDist(dogPoop, trashCan, trashThreshold)
+        if checkPoopToTrash then
+            dogPoopCleaned = true
+            -- remove invisibleWall
+            if invisibleWall then
+                invisibleWall:destroy()
+                invisibleWall = nil
+            end
+            -- remove poop
+            if dogPoop.body then
+                dogPoop.body:destroy()
+                dogPoop.body = nil
+            end
+        end
+    end
+
+    if not dogPoopCleaned and checkDist(dogPoop, player, poopThreshold) then
+        -- push back player
+        local poopCenterX = dogPoop.x + dogPoop.width / 2
+        player.x = poopCenterX - poopThreshold - player.width / 2
     end
 
     -- limit player movement if dog poop not solved
@@ -89,12 +96,19 @@ function Level1.draw()
     -- draw objects
     if not dogPoopCleaned then
         dogPoop:draw()
+
+        -- show poop radius (for debug)
+        love.graphics.setColor(1, 0, 0, 0.1)
+        local poopCenterX = dogPoop.x + dogPoop.width/2
+        local poopCenterY = dogPoop.y + dogPoop.height/2
+        love.graphics.circle("fill", poopCenterX, poopCenterY, poopThreshold)
     end
 
     -- draw trash can
     love.graphics.setColor(trashCan.color[1], trashCan.color[2], trashCan.color[3], 1)
     love.graphics.rectangle("fill", trashCan.x, trashCan.y, trashCan.width, trashCan.height)
 
+    -- this is invis wall (also for debug)
     if not dogPoopCleaned then
         love.graphics.setColor(1, 0, 0, 0.3)
         love.graphics.rectangle("fill", PROGRESS_GATE_X, 0, 10, WINDOWHEIGHT - 300)

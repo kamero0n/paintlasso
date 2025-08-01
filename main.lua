@@ -38,6 +38,9 @@ function love.load()
     world = wf.newWorld(0, 800) -- gravity down
     world:setGravity(0, 800)
 
+    -- dialogue font
+    font = love.graphics.newFont("assets/fonts/PublicPixel.ttf", 40) 
+
     firstCorner = {
         x = 0,
         y = 0
@@ -94,11 +97,13 @@ function updateCamera()
 
     -- keep camera w/in bounds
     if targetX < 0 then
-        targetX= 0
+        targetX = 0
     end
 
+    -- limit camera based on curr zone
     if not Level1.isPuzzleSolved() then
-        local maxCameraX = Level1.getProgressGateX() - WINDOWWIDTH /2
+        -- camera can't move past gate
+        local maxCameraX = Level1.getProgressGateX() - WINDOWWIDTH / 2
         if targetX > maxCameraX then
             targetX = maxCameraX
         end
