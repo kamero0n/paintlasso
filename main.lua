@@ -17,7 +17,8 @@ local offsetX, offsetY
 -- are we "selecting", "dragging", "scaling", or "rotating"
 local lasso_state = "selecting"
 
-local selectedObject = nil
+local selectedObjects = {}
+local groupOffsets = {} -- store offset for selected objects
 local allObjects = {}
 
 -- CAMERA
@@ -82,9 +83,6 @@ function updateCamera()
     if camera.x < 0 then
         camera.x = 0
     end
-    if camera.x > WINDOWWIDTH then
-        --camera.x = WINDOWWIDTH
-    end
 end
 
 function love.update(dt)
@@ -102,12 +100,15 @@ function love.update(dt)
     -- update camera
     updateCamera()
 
-    -- update obj w/ gravity 
-    -- local isBeingDragged = (lasso_state == "dragging" and isMouseDragging)
-    -- object1:update(dt, isBeingDragged, isSelected)
     -- update all objects
     for i, obj in ipairs(allObjects) do
-        local isBeingDragged = (selectedObject == obj and lasso_state == "dragging" and isMouseDragging)
+        local isBeingDragged = false
+        for j, selectedObj in ipairs(selectedObjects) do
+            if selectedObj == obj and lasso_state == "dragging" and isMouseDragging then
+                isBeingDragged = true
+                break
+            end
+        end
         obj:update(dt, isBeingDragged)
     end
 
@@ -123,23 +124,40 @@ function love.mousepressed(x, y, button, istouch)
         --cursor animation play
         cursor.animationPlay = true
 
-        -- check if clicking on selected object first
-        if selectedObject and selectedObject.isSelected then
-            if selectedObject.x <= worldX and worldX <= selectedObject.x + selectedObject.width
-                and selectedObject.y <= worldY and worldY <= selectedObject.y + selectedObject.height
+        -- check if clicking on any selected object first
+        local clickedSelectedObj = nil
+        for i, obj in ipairs(selectedObjects) do
+            if obj.x <= worldX and worldX <= obj.x + obj.width
+                and obj.y <= worldY and worldY <= obj.y + obj.height
             then
-                lasso_state = "dragging"
-                isMouseDragging = true
-                offsetX = worldX - selectedObject.x
-                offsetY = worldY - selectedObject.y
-
-                return
-            else
-                -- clicking outside
-                selectedObject.isSelected = false
-                selectedObject = nil
-                lasso_state = "selecting"
+                clickedSelectedObj = obj
+                
+                break
             end
+        end
+
+        if clickedSelectedObj then
+            -- start draggin group
+            lasso_state = "dragging"
+            isMouseDragging = true
+
+            -- calculate offset for each selected object
+            groupOffsets = {}
+            for i, obj in ipairs(selectedObjects) do
+                groupOffsets[obj] = {
+                    x = worldX - obj.x;
+                    y = worldY - obj.y;
+                }
+            end
+            return
+        else
+            -- clicking outside
+            for i, obj in ipairs(selectedObjects) do
+                obj.isSelected = false
+            end
+            selectedObjects = {}
+            groupOffsets = {}
+            lasso_state = "selecting"
         end
 
         -- start lasso
@@ -166,8 +184,13 @@ function love.mousemoved(x, y, dx, dy, istouch)
     end
 
     if isMouseDragging and lasso_state == "dragging" then
-        selectedObject.x = worldX - offsetX
-        selectedObject.y = worldY - offsetY
+        for i, obj in ipairs(selectedObjects) do
+            local offset = groupOffsets[obj]
+            if offset then
+                obj.x = worldX - offset.x
+                obj.y = worldY - offset.y
+            end
+        end
     end
 end
 
@@ -182,20 +205,20 @@ function love.mousereleased(x, y, button, istouch)
                 width = math.abs(firstCorner.x - secondCorner.x),
                 height = math.abs(firstCorner.y - secondCorner.y),
             }
+
+            -- clear previous selection
+            for i, obj in ipairs(selectedObjects) do
+                obj.isSelected = false
+            end
+            selectedObjects = {}
             
             -- check all objects for selection
             for i, obj in ipairs(allObjects) do 
                 if pos.x <= obj.x and obj.x + obj.width <= pos.x + pos.width
                     and pos.y <= obj.y and obj.y + obj.height <= pos.y + pos.height
                 then
-                    -- deselect
-                    if selectedObject then
-                        selectedObject.isSelected = false
-                    end
-
                     obj.isSelected = true
-                    selectedObject = obj
-                    break
+                    table.insert(selectedObjects, obj)
                 end
             end
     end
