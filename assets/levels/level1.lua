@@ -16,11 +16,20 @@ function Level1.init()
     table.insert(testObjects, SelectableObject(600, 200, 50, 50, {0, 1, 1}))
 end
 
-function Level1.play(player, dt)
+function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, allObjects)
    -- update all test objects
    for i, obj in ipairs(testObjects) do
         local isBeingDragged = false
-        obj:update(dt, isBeingDragged)
+        
+        -- check if object is being dragged
+        for j, selectedObj in ipairs(selectedObjects) do
+            if selectedObj == obj and lasso_state == "dragging" and isMouseDragging then
+                isBeingDragged = true
+                break
+            end
+        end
+
+        obj:update(dt, isBeingDragged, allObjects)
    end
 
    -- simple

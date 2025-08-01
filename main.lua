@@ -14,10 +14,10 @@ local firstCorner, secondCorner
 local offsetX, offsetY
 
 -- check the lasso tool state
--- are we "selecting", "dragging", "scaling", or "rotating"
+-- are we "selecting", "dragging", or "scaling"
 local lasso_state = "selecting"
 
-local selectedObjects = {}
+local selectedObjects = {} -- store selected objects
 local groupOffsets = {} -- store offset for selected objects
 local allObjects = {}
 
@@ -42,9 +42,6 @@ function love.load()
     -- create canvas
     gameCanvas = love.graphics.newCanvas(WINDOWWIDTH, WINDOWHEIGHT)
 
-    -- add an object
-    object1 = SelectableObject(WINDOWWIDTH/2, WINDOWHEIGHT/2, 30, 30)
-
     -- player
     player = {
         x = WINDOWWIDTH/2,
@@ -67,7 +64,6 @@ function love.load()
 
     Level1.init()
 
-    allObjects = {object1}
     for i, obj in ipairs(Level1.getObjects()) do
         table.insert(allObjects, obj)
     end
@@ -100,20 +96,8 @@ function love.update(dt)
     -- update camera
     updateCamera()
 
-    -- update all objects
-    for i, obj in ipairs(allObjects) do
-        local isBeingDragged = false
-        for j, selectedObj in ipairs(selectedObjects) do
-            if selectedObj == obj and lasso_state == "dragging" and isMouseDragging then
-                isBeingDragged = true
-                break
-            end
-        end
-        obj:update(dt, isBeingDragged)
-    end
-
     -- first level
-    Level1.play(player, dt)
+    Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, allObjects)
 end
 
 function love.mousepressed(x, y, button, istouch)
@@ -241,9 +225,6 @@ function love.draw()
 
     -- draw world elements
     Level1.draw()
-
-    -- test object
-    object1.draw(object1)
 
     love.graphics.setColor(1, 1, 1, 1) -- set to white
     if isMouseDragging and lasso_state == "selecting" then
