@@ -2,6 +2,7 @@ require "assets/tools/lassoObjects"
 require "assets/levels/testLevel"
 require "assets/levels/level1"
 anim8 = require 'assets/libraries/anim8'
+wf = require "assets/libraries/windfield"
 
 local WINDOWWIDTH, WINDOWHEIGHT = love.graphics.getDimensions()
 
@@ -33,6 +34,10 @@ local camera = {
 
 function love.load()
     love.graphics.setDefaultFilter("nearest", "nearest")
+
+    world = wf.newWorld(0, 800) -- gravity down
+    world:setGravity(0, 800)
+
     firstCorner = {
         x = 0,
         y = 0
@@ -47,13 +52,21 @@ function love.load()
     gameCanvas = love.graphics.newCanvas(WINDOWWIDTH, WINDOWHEIGHT)
 
     -- player
-    player = {
+    playerVars = {
         x = 200,
         y = WINDOWHEIGHT - 350,
         width = 30, 
         height = 50,
         speed = 400
     }
+
+    player = world:newRectangleCollider(playerVars.x, playerVars.y, playerVars.width, playerVars.height)
+    player:setType('static')
+    player.x = playerVars.x
+    player.y = playerVars.y
+    player.width = playerVars.width
+    player.height = playerVars.height
+    player.speed = playerVars.speed
 
     --cursor properties
     cursor = {}
@@ -66,7 +79,7 @@ function love.load()
             cursor.animations.leftClick = anim8.newAnimation(cursor.grid('1-4', 1), 0.2)
     cursor.x, cursor.y =  love.mouse.getPosition()
 
-    Level1.init()
+    Level1.init(world)
 
     for i, obj in ipairs(Level1.getObjects()) do
         table.insert(allObjects, obj)
@@ -86,6 +99,9 @@ function updateCamera()
 end
 
 function love.update(dt)
+    -- world update
+    world:update(dt)
+
     -- player movement
     if love.keyboard.isDown("a") or love.keyboard.isDown("left") then
         player.x = player.x - player.speed * dt
@@ -93,6 +109,9 @@ function love.update(dt)
     if love.keyboard.isDown("d") or love.keyboard.isDown("right") then
         player.x = player.x + player.speed * dt
     end
+
+    -- update player windfield collider
+    player:setPosition(player.x + player.width/2, player.y + player.height/2)
 
     --cursor left click animation
     cursor.animations.leftClick:update(dt)
@@ -262,6 +281,8 @@ function love.mousereleased(x, y, button, istouch)
 end
 
 function love.draw()
+    world:draw()
+
     -- set target canvas
     love.graphics.setCanvas(gameCanvas)
     love.graphics.clear(0, 0, 0, 1)
@@ -301,5 +322,3 @@ function love.draw()
         cursor.animations.leftClick:draw(cursor.sparkle, cursor.x, cursor.y, nil, 2, 2)
     end
 end
-
-

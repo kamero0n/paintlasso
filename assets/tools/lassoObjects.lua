@@ -2,7 +2,7 @@ Object = require ("assets/libraries/classic")
 
 SelectableObject = Object:extend(Object)
 
-function SelectableObject:new(x, y, width, height, color)
+function SelectableObject:new(x, y, width, height, color, world)
     self.x = x or 0
     self.y = y or 0
     self.width = width or 50
@@ -17,6 +17,11 @@ function SelectableObject:new(x, y, width, height, color)
     self.gravity = 800
     self.isGrounded = false
     self.groundY = love.graphics.getHeight() - 300
+
+    if world then
+        self.body = world:newRectangleCollider(self.x, self.y, self.width, self.height)
+        self.body:setType('static')
+    end
 end
 
 function SelectableObject:update(dt, isBeingDragged, allObjects)
@@ -65,12 +70,30 @@ function SelectableObject:update(dt, isBeingDragged, allObjects)
         self.velocityY = 0
         self.isGrounded = false
     end
+
+    -- update windfield collider to match obj
+    if self.body then
+        self.body:setPosition(self.x + self.width/2, self.y + self.height/2)
+    end
+end
+
+function SelectableObject:setSize(width, height)
+    self.width = width
+    self.height = height
+
+    -- udpate windfield collider
+    if self.body then
+        local bodyX, bodyY = self.body:getPosition()
+        self.body:destroy()
+        self.body = world:newRectangleCollider(self.x, self.y, width, height)
+        self.body:setType('static')
+        self.body:setPosition(self.x + width/2, self.y + height/2)
+    end
 end
 
 function SelectableObject:draw()
     if self.isSelected then
         -- draw selection outline
-
         love.graphics.setColor(1, 1, 0, 1)
         love.graphics.rectangle("line", self.x - 2, self.y - 2, self.width + 4, self.height + 4)
     end
