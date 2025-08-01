@@ -1,5 +1,6 @@
 require "assets/tools/lassoObjects"
 require "assets/levels/level1"
+anim8 = require 'assets/libraries/anim8'
 
 local WINDOWWIDTH, WINDOWHEIGHT = love.graphics.getDimensions()
 
@@ -26,6 +27,7 @@ local camera = {
 }
 
 function love.load()
+    love.graphics.setDefaultFilter("nearest", "nearest")
     firstCorner = {
         x = 0,
         y = 0
@@ -50,6 +52,17 @@ function love.load()
         height = 50,
         speed = 400
     }
+
+    --cursor properties
+    cursor = {}
+        cursor.x = 0
+        cursor.y = 0
+        cursor.sparkle = love.graphics.newImage('assets/art/animations/cursorSparklesB.png')
+        cursor.grid = anim8.newGrid(32,32, cursor.sparkle:getWidth(), cursor.sparkle:getHeight())
+        cursor.animationPlay = false
+        cursor.animations = {}
+            cursor.animations.leftClick = anim8.newAnimation(cursor.grid('1-4', 1), 0.2)
+    cursor.x, cursor.y =  love.mouse.getPosition()
 
     Level1.init()
 
@@ -83,6 +96,9 @@ function love.update(dt)
         player.x = player.x + player.speed * dt
     end
 
+    --cursor left click animation
+    cursor.animations.leftClick:update(dt)
+
     -- update camera
     updateCamera()
 
@@ -104,6 +120,9 @@ function love.mousepressed(x, y, button, istouch)
     local worldY = y + camera.y
 
     if button == 1  then
+        --cursor animation play
+        cursor.animationPlay = true
+
         -- check if clicking on selected object first
         if selectedObject and selectedObject.isSelected then
             if selectedObject.x <= worldX and worldX <= selectedObject.x + selectedObject.width
@@ -137,6 +156,10 @@ function love.mousemoved(x, y, dx, dy, istouch)
     local worldX = x + camera.x
     local worldY = y + camera.y
 
+    --update cursor animation location
+    cursor.x = x
+    cursor.y = y
+
     if isMouseDragging and lasso_state == "selecting" then
         secondCorner.x = worldX
         secondCorner.y = worldY
@@ -149,6 +172,9 @@ function love.mousemoved(x, y, dx, dy, istouch)
 end
 
 function love.mousereleased(x, y, button, istouch)
+    --end cursor animation
+    cursor.animationPlay = false
+
     if isMouseDragging and lasso_state == "selecting" then
             local pos = {
                 x = math.min(firstCorner.x, secondCorner.x),
@@ -215,6 +241,9 @@ function love.draw()
     love.graphics.setCanvas()
     -- draw the canvas
     love.graphics.draw(gameCanvas, 0, 0);
+    if cursor.animationPlay then
+        cursor.animations.leftClick:draw(cursor.sparkle, cursor.x, cursor.y, nil, 2, 2)
+    end
 end
 
 
