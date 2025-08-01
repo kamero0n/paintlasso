@@ -7,6 +7,8 @@ function SelectableObject:new(x, y, width, height, color)
     self.y = y or 0
     self.width = width or 50
     self.height = height or 50
+    self.ogWidth = self.width
+    self.ogHeight = self.height
     self.color = color or {1, 1, 1}
     self.isSelected = false
 

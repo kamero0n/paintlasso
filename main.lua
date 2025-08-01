@@ -10,6 +10,9 @@ local isMouseDragging = false
 -- positions for lasso loop
 local firstCorner, secondCorner
 
+-- scale start pos
+local scaleStartPos = {x = 0, y = 0}
+
 -- offset values for selected object vs mouse
 local offsetX, offsetY
 
@@ -121,6 +124,18 @@ function love.mousepressed(x, y, button, istouch)
         end
 
         if clickedSelectedObj then
+            local cornerSize = 10
+            if worldX >= (clickedSelectedObj.x + clickedSelectedObj.width - cornerSize) and worldX <= (clickedSelectedObj.x + clickedSelectedObj.width)
+                and worldY >= clickedSelectedObj.y and worldY <= (clickedSelectedObj.y + cornerSize)
+            then
+                lasso_state = "scaling"
+                isMouseDragging = true
+                scaleStartPos.x = worldX
+                scaleStartPos.y = worldY
+                return
+            end
+
+
             -- start draggin group
             lasso_state = "dragging"
             isMouseDragging = true
@@ -174,6 +189,41 @@ function love.mousemoved(x, y, dx, dy, istouch)
                 obj.x = worldX - offset.x
                 obj.y = worldY - offset.y
             end
+        end
+    end
+
+    if isMouseDragging and lasso_state == "scaling" then
+        -- calc dist from scale start pos
+        local deltaX = worldX - scaleStartPos.x
+        local deltaY = worldY - scaleStartPos.y
+        local dist = math.sqrt(deltaX^2 + deltaY^2)
+
+        -- check which dir for scaling
+        local scaleDir = 1
+        if deltaX < 0 and deltaY < 0 then
+            scaleDir = -1
+        end
+
+        for i, obj in ipairs(selectedObjects) do
+            -- calcualte scale factor
+            local scaleFactor = 1 + (scaleDir * dist / 100)
+
+            -- clamp scale
+            scaleFactor = math.max(scaleFactor, 0.5)
+            scaleFactor = math.min(scaleFactor, 3.0)
+
+            -- apply
+            local newWidth = obj.ogWidth * scaleFactor
+            local newHeight = obj.ogHeight * scaleFactor
+
+            local bottomY = obj.y + obj.height
+
+            -- update
+            obj.width = newWidth
+            obj.height = newHeight
+
+            -- keep bottom anchored 
+            obj.y = bottomY - newHeight
         end
     end
 end
