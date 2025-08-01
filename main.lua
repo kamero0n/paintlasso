@@ -61,7 +61,7 @@ function love.load()
     }
 
     player = world:newRectangleCollider(playerVars.x, playerVars.y, playerVars.width, playerVars.height)
-    player:setType('static')
+    player:setType('dynamic')
     player.x = playerVars.x
     player.y = playerVars.y
     player.width = playerVars.width
@@ -89,18 +89,31 @@ end
 
 function updateCamera()
     -- camera follows player
-    camera.x = player.x - WINDOWWIDTH / 2
-    camera.y = player.y - WINDOWHEIGHT / 2
+    local targetX = player.x - WINDOWWIDTH / 2
+    local targetY = player.y - WINDOWHEIGHT / 2
 
     -- keep camera w/in bounds
-    if camera.x < 0 then
-        camera.x = 0
+    if targetX < 0 then
+        targetX= 0
     end
+
+    if not Level1.isPuzzleSolved() then
+        local maxCameraX = Level1.getProgressGateX() - WINDOWWIDTH /2
+        if targetX > maxCameraX then
+            targetX = maxCameraX
+        end
+    end
+
+    camera.x = targetX
+    camera.y = targetY
 end
 
 function love.update(dt)
     -- world update
     world:update(dt)
+
+    -- store player pos
+    local prevPos = player.x
 
     -- player movement
     if love.keyboard.isDown("a") or love.keyboard.isDown("left") then
@@ -121,6 +134,12 @@ function love.update(dt)
 
     -- first level
     Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, allObjects)
+
+    -- update allObjects list
+    allObjects = {}
+    for i, obj in ipairs(Level1.getObjects()) do
+        table.insert(allObjects, obj)
+    end
 end
 
 function love.mousepressed(x, y, button, istouch)
