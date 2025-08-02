@@ -1,4 +1,5 @@
 require "assets/tools/npc"
+require "assets/tools/utils"
 
 Level2 = {}
 
@@ -64,27 +65,6 @@ function Level2.init(world)
 
 end
 
-local function checkDist(obj1, obj2, threshold)
-    local obj1CenterX = obj1.x + obj1.width/2
-    local obj1CenterY = obj1.y + obj1.height/2
-    local obj2CenterX = obj2.x + obj2.width/2
-    local obj2CenterY = obj2.y + obj2.height/2
-
-    local dist = math.sqrt((obj1CenterX - obj2CenterX)^2 + (obj1CenterY - obj2CenterY)^2)
-
-    return dist < threshold
-end
-
-local function checkIfObjIsDragged(obj, selectedObjects, lasso_state, isMouseDragging)
-    local isBeingDragged = false
-    for j, selectedOBj in ipairs(selectedObjects) do
-        if selectedOBj == obj and lasso_state == "dragging" and isMouseDragging then
-                isBeingDragged = true
-        end
-    end
-
-    return isBeingDragged
-end
 
 local function checkItemInZone(item, zone)
     local itemCenterX = item.x + item.width/2
@@ -102,7 +82,7 @@ function Level2.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
     employee:update(dt)
 
     -- block player with employee until items are stocked
-    if not shelfStacked and checkDist(player, employee, employeeBlockRadius) then
+    if not shelfStacked and Utils.checkDist(player, employee, employeeBlockRadius) then
         local employeeCenterX = employee.x + employee.width/2
         player.x = employeeCenterX - employeeBlockRadius - player.width / 2
     end
@@ -110,7 +90,7 @@ function Level2.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
     -- check stocking and if placed correctly
     for i, item in ipairs(items) do
         if not item.isStocked then
-            local isItemBeingDragged = checkIfObjIsDragged(item, selectedObjects, lasso_state, isMouseDragging)
+            local isItemBeingDragged = Utils.checkIfObjIsDragged(item, selectedObjects, lasso_state, isMouseDragging)
             item:update(dt, isItemBeingDragged, allObjects)
 
             -- check if item is in correct zone and not being dragged

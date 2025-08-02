@@ -115,17 +115,6 @@ function Level1.init(world)
     kiddieSlide = SelectableObject(1550, WINDOWHEIGHT - 370, 50, 70, {1, 0.2, 0.2}, world)
 end
 
-local function checkIfObjIsDragged(obj, selectedObjects, lasso_state, isMouseDragging)
-    local isBeingDragged = false
-    for j, selectedOBj in ipairs(selectedObjects) do
-        if selectedOBj == obj and lasso_state == "dragging" and isMouseDragging then
-                isBeingDragged = true
-        end
-    end
-
-    return isBeingDragged
-end
-
 local function isLidOnSprinkler()
     local lidCenterX = trashCanLid.x + trashCanLid.width/2
     local sprinklerCenterX = sprinkler.x + sprinkler.width /2
@@ -171,7 +160,7 @@ function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
     -- first puzzle --
     local isPoopBeingDragged = false
     if dogPoop then
-        isPoopBeingDragged = checkIfObjIsDragged(dogPoop, selectedObjects, lasso_state, isMouseDragging)
+        isPoopBeingDragged = Utils.checkIfObjIsDragged(dogPoop, selectedObjects, lasso_state, isMouseDragging)
     end
     -- check if poop has been picked up
     if not dogPoopCleaned and not isPoopBeingDragged then
@@ -219,7 +208,7 @@ function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
 
     -- second puzzle -- 
     -- update trash can lid
-    local isLidBeingDragged = checkIfObjIsDragged(trashCanLid, selectedObjects, lasso_state, isMouseDragging)
+    local isLidBeingDragged = Utils.checkIfObjIsDragged(trashCanLid, selectedObjects, lasso_state, isMouseDragging)
     trashCanLid:update(dt, isLidBeingDragged, allObjects)
 
     if isLidOnSprinkler() and not isLidBeingDragged then
@@ -254,7 +243,7 @@ function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
 
     -- third puzzle --
     for _, ball in ipairs(bouncyBalls) do
-        local isBallBeingDragged = checkIfObjIsDragged(ball, selectedObjects, lasso_state, isMouseDragging)
+        local isBallBeingDragged = Utils.checkIfObjIsDragged(ball, selectedObjects, lasso_state, isMouseDragging)
         ball:update(dt, isBallBeingDragged, allObjects)
     end
 
@@ -298,8 +287,8 @@ function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
     end
 
     -- fourth puzzle --
-    local isBoxBeingDragged = checkIfObjIsDragged(box, selectedObjects, lasso_state, isMouseDragging)
-    local isSlideBeingDragged = checkIfObjIsDragged(kiddieSlide, selectedObjects, lasso_state, isMouseDragging)
+    local isBoxBeingDragged = Utils.checkIfObjIsDragged(box, selectedObjects, lasso_state, isMouseDragging)
+    local isSlideBeingDragged = Utils.checkIfObjIsDragged(kiddieSlide, selectedObjects, lasso_state, isMouseDragging)
 
     box:update(dt, isBoxBeingDragged, allObjects)
     kiddieSlide:update(dt, isSlideBeingDragged, allObjects)
@@ -362,7 +351,6 @@ function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
         end
     end
 end
-
 
 function Level1.draw()
     -- floor
@@ -438,8 +426,6 @@ function Level1.draw()
     -- draw dog
     love.graphics.setColor(playerDog.color[1], playerDog.color[2], playerDog.color[3], 1)
     love.graphics.rectangle("fill", playerDog.x, playerDog.y, playerDog.width, playerDog.height)
-
-
 end
 
 function Level1.getObjects()

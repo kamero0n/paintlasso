@@ -11,5 +11,16 @@ function Utils.checkDist(obj1, obj2, threshold)
     return dist < threshold
 end
 
+function Utils.checkIfObjIsDragged(obj, selectedObjects, lasso_state, isMouseDragging)
+    local isBeingDragged = false
+    for j, selectedOBj in ipairs(selectedObjects) do
+        if selectedOBj == obj and lasso_state == "dragging" and isMouseDragging then
+                isBeingDragged = true
+        end
+    end
+
+    return isBeingDragged
+end
+
 
 return Utils
