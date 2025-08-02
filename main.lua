@@ -86,9 +86,9 @@ function love.load()
     cursor.x, cursor.y =  love.mouse.getPosition()
 
     sceneManager.init()
-    Level1.init(world)
+    Level3.init(world)
 
-    for i, obj in ipairs(Level1.getAllObjects()) do
+    for i, obj in ipairs(Level3.getAllObjects()) do
         table.insert(allObjects, obj)
     end
 
