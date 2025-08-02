@@ -506,7 +506,7 @@ function Level1.getAllObjects()
     return objects
 end
 
-function Level1.isPuzzleSolved()
+function Level1.isLevelSolved()
     return dogPoopCleaned and sprinklerCovered and ballsDistracted and playerDog.isRescued
 end
 

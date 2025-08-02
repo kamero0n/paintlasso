@@ -1,6 +1,6 @@
 require "assets/tools/lassoObjects"
-require "assets/levels/testLevel"
 require "assets/levels/level1"
+require "assets/levels/level2"
 anim8 = require 'assets/libraries/anim8'
 wf = require "assets/libraries/windfield"
 
