@@ -130,9 +130,6 @@ function love.update(dt)
     -- update level from scene manager
     sceneManager.updateCurrentLevel(player, dt, selectedObjects, lasso_state, isMouseDragging, allObjects)
 
-    -- first level
-    --Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, allObjects)
-
     -- update allObjects list
     allObjects = {}
     for i, obj in ipairs(sceneManager.getCurrentLevelAllObjects()) do
@@ -225,9 +222,6 @@ function love.mousemoved(x, y, dx, dy, istouch)
         for i, obj in ipairs(selectedObjects) do
             local offset = groupOffsets[obj]
             if offset then
-                -- obj.x = worldX - offset.x
-                -- obj.y = worldY - offset.y
-
                 local newX = worldX - offset.x
                 local newY = worldY - offset.y
 

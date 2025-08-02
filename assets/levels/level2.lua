@@ -7,7 +7,7 @@ Level2 = {}
 local WINDOWWIDTH, WINDOWHEIGHT = love.graphics.getDimensions()
 
 -- first puzzle stuff
-local employee, shelf
+local employee
 local shelfStacked = false
 local employeeBlockRadius = 50
 local items = {}
@@ -86,7 +86,7 @@ function Level2.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
         local employeeCenterX = employee.x + employee.width/2
         player.x = employeeCenterX - employeeBlockRadius - player.width / 2
     end
-
+    
     -- check stocking and if placed correctly
     for i, item in ipairs(items) do
         if not item.isStocked then
@@ -159,7 +159,7 @@ function Level2.getObjects()
     local objects = {}
 
     for _, item in ipairs(items) do
-        if not item.itemsStocked then
+        if not item.isStocked then
             table.insert(objects, item)
         end
     end
@@ -171,7 +171,7 @@ function Level2.getAllObjects()
     local objects = {}
 
     for _, item in ipairs(items) do
-        if not item.itemsStocked then
+        if not item.isStocked then
             table.insert(objects, item)
         end
     end
