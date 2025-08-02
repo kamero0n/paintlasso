@@ -24,6 +24,14 @@ local childBlockRadius = 50
 local childFound = false
 local momAppeared = false
 
+-- third puzzle stuff
+local fatGuy, fridge
+local fridgeDrinks = {}
+local numDrinks = 5
+local fatGuyBlockRadius = 80
+local fatGuyMoved = false
+local correctDrinkType = 4
+
 function Level2.init(world)
     -- create ground collider
     ground = world:newRectangleCollider(0, WINDOWHEIGHT - 300, WINDOWWIDTH * 4, 300)
@@ -98,6 +106,40 @@ function Level2.init(world)
     mom.isVisible = false
     mom.speed = 200 -- RUN to the child
 
+    -- fat guy 
+    fatGuy = NPC(1600, WINDOWHEIGHT - 380, 60, 80, {0.4, 0.2, 0.7}, 0)
+
+    -- fridge
+    fridge = {
+        x = 1700,
+        y = WINDOWHEIGHT - 430,
+        width = 150,
+        height = 130
+    }
+
+    -- fridge drinks
+    local drinkColors = {
+        {0.8, 0.2, 0.2},
+        {0.2, 0.8, 0.2},
+        {0.2, 0.2, 0.8},
+        {1, 1, 1},
+        {0.6, 0.3, 0.1}
+    }
+
+    for i = 1, numDrinks do 
+        local drink = SelectableObject(
+            fridge.x + 10 + ((i - 1) * 25),
+            fridge.y + 10,
+            20,
+            35,
+            drinkColors[i],
+            world
+        )
+
+        drink.drinkType = i
+        drink.isFridgeDrink = true
+        table.insert(fridgeDrinks, drink)
+    end
 end
 
 -- check if item is placed in the right zone
@@ -191,7 +233,6 @@ local function checkAllBoxesUnderChild()
     for _, box in ipairs(cerealBoxes) do
         local boxLeft = box.x
         local boxRight = box.x + box.width
-        local boxCenterX = box.x + box.width /2
 
         local horizOverlap = (childCenterX >= boxLeft - 10 and childCenterX <= boxRight + 10)
 
@@ -324,6 +365,11 @@ function Level2.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
        
     end
 
+    -- third puzzle
+    if childFound then
+        fatGuy:draw()
+    end
+
    
 end
 
@@ -372,6 +418,30 @@ function Level2.draw()
     if mom.isVisible then
         mom:draw()
     end
+
+    -- draw fridge
+    if childFound then
+        love.graphics.setColor(0.7, 0.7, 0.7, 1)
+        love.graphics.rectangle("fill", fridge.x, fridge.y, fridge.width, fridge.height)
+        love.graphics.setColor(0.3, 0.3, 0.3, 1)
+        love.graphics.rectangle("line", fridge.x, fridge.y, fridge.width, fridge.height)
+
+        -- draw fridge shelves
+        love.graphics.setColor(0.5, 0.5, 0.5, 1)
+        love.graphics.rectangle("fill", fridge.x + 5, fridge.y + 20, fridge.width - 10, 3)
+        love.graphics.rectangle("fill", fridge.x + 5, fridge.y + 50, fridge.width - 10, 3)
+
+        
+        -- draw da drinks
+        for _, drink in ipairs(fridgeDrinks) do
+            if not drink.isConsumed then
+                drink:draw()
+            end
+        end
+    end
+
+    -- fat guy
+    fatGuy:draw()
 end
 
 
@@ -389,7 +459,14 @@ function Level2.getObjects()
             table.insert(objects, box)
         end
     end
-
+    
+    if childFound then
+        for _, drink in ipairs(fridgeDrinks) do
+            if not drink.isConsumed then
+                table.insert(objects, drink)
+            end
+        end
+    end
     return objects
 end
 
@@ -408,6 +485,14 @@ function Level2.getAllObjects()
         end
     end
 
+    if childFound then
+        for _, drink in ipairs(fridgeDrinks) do
+            if not drink.isConsumed then
+                table.insert(objects, drink)
+            end
+        end
+    end
+
     employee.isSelectable = false
     child.isSelectable = false
     table.insert(objects, employee)
@@ -416,6 +501,11 @@ function Level2.getAllObjects()
     if mom.isVisible then
         mom.isSelectable = false
         table.insert(objects, mom)
+    end
+
+    if childFound then
+        fatGuy.isSelectable = false
+        table.insert(objects, fatGuy)
     end
 
     return objects

@@ -129,6 +129,7 @@ function sceneManager.updateCurrentLevel(player, dt, selectedObjects, lasso_stat
         Level2.play(player, dt, selectedObjects, lasso_state, isMouseDragging, allObjects)
 
         -- check if level 2 is complete
+        
     end
 
 end
