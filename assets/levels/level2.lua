@@ -6,9 +6,13 @@ Level2 = {}
 local WINDOWWIDTH, WINDOWHEIGHT = love.graphics.getDimensions()
 
 -- first puzzle stuff
-local employee
+local employee, shelf
 local shelfStacked = false
-local employeeBlockRadius = 70
+local employeeBlockRadius = 50
+local items = {}
+local targetZones = {}
+local itemsStocked = 0
+local totalItems = 3
 
 function Level2.init(world)
     -- create ground collider
@@ -17,6 +21,11 @@ function Level2.init(world)
 
     -- create employee
     employee = NPC(400, WINDOWHEIGHT - 380, 40, 80, {0.2, 0.4, 0.8}, 0)
+
+    -- items to stock
+    table.insert(items, SelectableObject(150, WINDOWHEIGHT - 330, 30, 30, {0.8, 0.2, 0.2}, world))
+    table.insert(items, SelectableObject(200, WINDOWHEIGHT - 335, 25, 35, {0.2, 0.8, 0.2}, world))
+    table.insert(items, SelectableObject(250, WINDOWHEIGHT - 340, 35, 40, {0.2, 0.2, 0.8}, world))
 end
 
 local function checkDist(obj1, obj2, threshold)
@@ -39,9 +48,6 @@ function Level2.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
         local employeeCenterX = employee.x + employee.width/2
         player.x = employeeCenterX - employeeBlockRadius - player.width / 2
     end
-
-    
-
 end
 
 function Level2.draw()
@@ -49,8 +55,21 @@ function Level2.draw()
     love.graphics.setColor(1, 1, 1, 1)
     love.graphics.rectangle("fill", 0, WINDOWHEIGHT - 300, WINDOWWIDTH * 4, 300)
 
+    -- create shelves
+    love.graphics.setColor(0.6, 0.4, 0.2, 1)
+    love.graphics.rectangle("fill", 360, WINDOWHEIGHT - 430, 200, 20)
+    love.graphics.rectangle("fill", 360, WINDOWHEIGHT - 380, 200, 20)
+    love.graphics.rectangle("fill", 360, WINDOWHEIGHT - 330, 200, 20)
+
     -- draw employee
     employee:draw()
+
+    -- draw items
+    for _, item in ipairs(items) do
+        item:draw()
+    end
+
+
 
 end
 
@@ -58,11 +77,26 @@ end
 function Level2.getObjects()
     local objects = {}
 
+    for _, item in ipairs(items) do
+        if not item.itemsStocked then
+            table.insert(objects, item)
+        end
+    end
+
     return objects
 end
 
 function Level2.getAllObjects()
     local objects = {}
+
+    for _, item in ipairs(items) do
+        if not item.itemsStocked then
+            table.insert(objects, item)
+        end
+    end
+
+    employee.isSelectable = false
+    table.insert(objects, employee)
 
     return objects
 end
