@@ -70,10 +70,6 @@ function sceneManager.switchToLevel(levelNum, world, player, WINDOWWIDTH, WINDOW
     player.y = WINDOWHEIGHT - 350
     player:setPosition(player.x + player.width/2, player.y + player.height/2)
 
-    -- reset camera
-    camera.x = 0
-    camera.y = 0
-
     -- clear curr level objs from allObject tables
     for i=#allObjects, 1, -1 do
         allObjects[i] = nil
