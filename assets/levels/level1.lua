@@ -179,8 +179,10 @@ end
 
 function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, allObjects)
     -- first puzzle --
-    local isPoopBeingDragged = checkIfObjIsDragged(dogPoop, selectedObjects, lasso_state, isMouseDragging)
-
+    local isPoopBeingDragged = false
+    if dogPoop then
+        isPoopBeingDragged = checkIfObjIsDragged(dogPoop, selectedObjects, lasso_state, isMouseDragging)
+    end
     -- check if poop has been picked up
     if not dogPoopCleaned and not isPoopBeingDragged then
         -- check horizontal dist
@@ -204,11 +206,12 @@ function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
                 dogPoop.body:destroy()
                 dogPoop.body = nil
             end
+
         end
     end
 
     -- update the poop!
-    if not dogPoopCleaned then
+    if not dogPoopCleaned and dogPoop then
         dogPoop:update(dt, isPoopBeingDragged, allObjects)
     end
 
