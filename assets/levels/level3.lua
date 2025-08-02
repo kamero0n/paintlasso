@@ -10,6 +10,9 @@ local WINDOWWIDTH, WINDOWHEIGHT = love.graphics.getDimensions()
 local solicitor, sign
 local signSmushedSolicitor = false
 local solicitorBlockRadius = 50
+local solOgHeight = 80
+local solminHeight = 10
+local smushSpeed = 150
 
 function Level3.init(world)
     -- create ground collider
@@ -18,6 +21,8 @@ function Level3.init(world)
 
     -- solicitor
     solicitor = NPC(400, WINDOWHEIGHT - 380, 40, 80, {0.2, 0.5, 0.5}, 0)
+    solicitor.originalY = solicitor.y
+    solicitor.isSmushing = false
     
     -- sign 
     sign = SelectableObject(50, WINDOWHEIGHT - 480, 150, 50, {0.8, 0.2, 0.8}, world)
@@ -38,6 +43,24 @@ local function isSignOnSolicitor()
     return horizDist <= (solicitor.width + sign.width) /2 and verticalOverlap
 end
 
+local function updateSolicitorSmushing(dt)
+    if solicitor.isSmushing and solicitor.height > solminHeight then
+        -- decrease height
+        local oldHeight = solicitor.height
+        solicitor.height = math.max(solminHeight, solicitor.height - smushSpeed * dt)
+
+        -- adjust Y to keep solicitor on ground
+        local heightDiff = oldHeight - solicitor.height
+        solicitor.y = solicitor.y + heightDiff
+
+        -- check if fully smushed
+        if solicitor.height <= solminHeight then
+            signSmushedSolicitor = true
+            solicitor.isGone = true
+        end
+    end
+end
+
 function Level3.play(player, dt, selectedObj, lasso_state, isMouseDragging, allObjects)
     -- first puzzle --
     solicitor:update(dt)
@@ -49,10 +72,11 @@ function Level3.play(player, dt, selectedObj, lasso_state, isMouseDragging, allO
     -- check if sign has smushed solictor
     if not signSmushedSolicitor and not isSignBeingDragged then
         if isSignOnSolicitor() then
-            signSmushedSolicitor = true
-            solicitor.isGone = true
+            solicitor.isSmushing = true
         end
     end
+
+    updateSolicitorSmushing(dt)
 
     -- block player if solicitor not gone
     if not signSmushedSolicitor and Utils.checkDist(player, solicitor, solicitorBlockRadius) then
