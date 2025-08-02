@@ -11,12 +11,17 @@ function BouncyBall:new(x, y, radius, color, world)
     self.minBounceVel = 50 -- min velocity to bounce
     self.world = world
 
+    -- bouncing state
+    self.isBouncing = false
+    
     -- override to be circle
     if self.body then
         self.body:destroy()
         self.body = world:newCircleCollider(self.x + radius, self.y + radius, radius)
         self.body:setType("dynamic")
         self.body:setRestitution(self.bounceDamping)
+
+        self.body:setCategory(2)
     end
 end
 
@@ -28,6 +33,9 @@ function BouncyBall:update(dt, isBeingDragged, allObjects)
             self.body:setPosition(self.x + self.radius, self.y + self.radius)
             self.body:setLinearVelocity(0, 0)
         end
+
+        self.isBouncing = false
+        self.bounceTimeout = 0
     else
         -- when not being dragged, move physics body to match
         if self.body then
@@ -37,6 +45,16 @@ function BouncyBall:update(dt, isBeingDragged, allObjects)
             self.x = bodyX - self.radius
             self.y = bodyY - self.radius
 
+            -- check if ball is bouncing based on velocity
+            local velX, velY = self.body:getLinearVelocity()
+            local totalVelocity = math.sqrt(velX^2 + velY^2)
+
+            if totalVelocity > 30 then
+                self.isBouncing = true
+            else 
+                self.isBouncing = false
+            end
+
         end
     end
 end
@@ -45,6 +63,7 @@ function BouncyBall:setSize(width, height)
     -- calculate new radius based on width
     local newRadius = width / 2
     self.radius = newRadius
+    self.ogRadius = newRadius
 
     self.width = width
     self.height = height
@@ -61,6 +80,7 @@ function BouncyBall:setSize(width, height)
         self.body = self.world:newCircleCollider(bodyX, bodyY, newRadius)
         self.body:setType("dynamic")
         self.body:setRestitution(self.bounceDamping)
+        self.body:setCategory(2)
 
         -- restore velocity
         self.body:setLinearVelocity(velX, velY)

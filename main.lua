@@ -65,6 +65,8 @@ function love.load()
 
     player = world:newRectangleCollider(playerVars.x, playerVars.y, playerVars.width, playerVars.height)
     player:setType('dynamic')
+    player:setCategory(1)
+    player:setMask(2)
     player.x = playerVars.x
     player.y = playerVars.y
     player.width = playerVars.width

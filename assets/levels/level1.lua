@@ -63,9 +63,9 @@ function Level1.init(world)
     invisibleWall:setType('static')
 
     -- create some balls
-    table.insert(bouncyBalls, BouncyBall(1000, WINDOWHEIGHT - 300, 15, {1, 0, 0}, world))
-    table.insert(bouncyBalls, BouncyBall(1000, WINDOWHEIGHT - 300, 15, {0, 1, 0}, world))
-    table.insert(bouncyBalls, BouncyBall(1000, WINDOWHEIGHT - 300, 15, {0, 0, 1}, world))
+    table.insert(bouncyBalls, BouncyBall(1015, WINDOWHEIGHT - 300, 15, {1, 0, 0}, world))
+    table.insert(bouncyBalls, BouncyBall(1030, WINDOWHEIGHT - 300, 15, {0, 1, 0}, world))
+    table.insert(bouncyBalls, BouncyBall(1045, WINDOWHEIGHT - 300, 15, {0, 0, 1}, world))
 
     -- create person
     person = NPC(1400, WINDOWHEIGHT - 380, 40, 80, {0.8, 0.6, 0.4}, 0) -- stationary for now...
@@ -199,9 +199,16 @@ function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
     dog:update(dt)
 
     -- check if dog is distracted by balls
-    local dogDistracted, closestBall = dog:isNearBalls(bouncyBalls, 50)
+    local dogDistracted, closestBall = dog:isNearBalls(bouncyBalls, 100)
     if dogDistracted and not ballsDistracted then
         ballsDistracted = true
+
+        -- move the balls to the left
+        for _, ball in ipairs(bouncyBalls) do
+            if ball.body then
+                ball.body:applyLinearImpulse(-300, -50)
+            end
+        end
 
         -- move dog and person to the left
         dog.isChasing = true
@@ -209,8 +216,8 @@ function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
     end
 
     if dog.isChasing then
-        dog.x = dog.x - 50 * dt
-        person.x = person.x - 40 * dt
+        dog.x = dog.x - 80 * dt
+        person.x = person.x - 80 * dt
     end
 
     -- block player if the dog is in their way

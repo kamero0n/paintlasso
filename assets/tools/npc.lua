@@ -49,10 +49,17 @@ end
 function NPC:isNearBalls(balls, threshold)
     threshold = threshold or 100
     for _, ball in ipairs(balls) do
-        local dist = math.sqrt((self.x - ball.x)^2 + (self.y - ball.y)^2)
+        if ball.isBouncing then
+            local ballCenterX = ball.x + ball.radius
+            local ballCenterY = ball.y + ball.radius
+            local npcCenterX = self.x + self.width/2
+            local npcCenterY = self.y + self.height/2
 
-        if dist < threshold then
-            return true, ball
+            local dist = math.sqrt((npcCenterX - ballCenterX)^2 + (npcCenterY - ballCenterY)^2)
+
+            if dist < threshold then
+                return true, ball
+            end
         end
     end
 
