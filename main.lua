@@ -1,6 +1,7 @@
 require "assets/tools/lassoObjects"
 require "assets/levels/level1"
 require "assets/levels/level2"
+require "assets/levels/level3"
 anim8 = require 'assets/libraries/anim8'
 gamera = require 'assets/libraries/gamera'
 wf = require "assets/libraries/windfield"
@@ -85,9 +86,9 @@ function love.load()
     cursor.x, cursor.y =  love.mouse.getPosition()
 
     sceneManager.init()
-    Level2.init(world)
+    Level1.init(world)
 
-    for i, obj in ipairs(Level2.getAllObjects()) do
+    for i, obj in ipairs(Level1.getAllObjects()) do
         table.insert(allObjects, obj)
     end
 

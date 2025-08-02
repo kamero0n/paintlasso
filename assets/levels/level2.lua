@@ -28,9 +28,10 @@ local momAppeared = false
 local fatGuy, fridge
 local fridgeDrinks = {}
 local numDrinks = 5
-local fatGuyBlockRadius = 80
+local fatGuyBlockRadius = 50
 local fatGuyMoved = false
-local correctDrinkType = 4
+local correctDrinkType = 3
+local carriedDrink = nil
 
 function Level2.init(world)
     -- create ground collider
@@ -276,6 +277,23 @@ local function checkAllBoxesUnderChild()
    return true
 end
 
+-- check if player is trying to give drink to fat guy
+local function checkDrinkGivenToFatGuy(drink)
+    if not drink.isFridgeDrink then
+        return false
+    end
+
+    -- check if drink is close to fat guy
+    local drinkCenterX = drink.x + drink.width/2
+    local drinkCenterY = drink.y + drink.height /2 
+    local fatGuyCenterX = fatGuy.x + fatGuy.width/2
+    local fatGuyCenterY = fatGuy.y + fatGuy.height/2
+
+    local dist = math.sqrt((drinkCenterX - fatGuyCenterX)^2 + (drinkCenterY - fatGuyCenterY)^2)
+
+    return dist < 30
+end
+
 function Level2.play(player, dt, selectedObjects, lasso_state, isMouseDragging, allObjects)
     -- first puzzle --
     -- update employee
@@ -367,9 +385,55 @@ function Level2.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
 
     -- third puzzle
     if childFound then
-        fatGuy:draw()
-    end
+        -- update drinks
+        for i, drink in ipairs(fridgeDrinks) do
+            local isDrinkBeingDragged = Utils.checkIfObjIsDragged(drink, selectedObjects, lasso_state, isMouseDragging)
+            drink:update(dt, isDrinkBeingDragged, allObjects)
 
+            -- check if drink is give to fat guy and not being dragged 
+            if not isDrinkBeingDragged and checkDrinkGivenToFatGuy(drink) then
+                if drink.drinkType == correctDrinkType then
+                    -- correct drink! 
+                    if not fatGuyMoved then
+                        fatGuyMoved = true
+                        
+                        -- move fat guy to left
+                        fatGuy.speed = 60
+                        fatGuy.dir = -1
+                        fatGuy.isMoving = true
+
+                        carriedDrink = {
+                            width = drink.width,
+                            height = drink.height,
+                            color = drink.color,
+                            drinkType = drink.drinkType
+                        }
+
+                        -- remove drink
+                        if drink.body then
+                            drink.body:destroy()
+                            drink.body = nil
+                        end
+
+                        drink.isConsumed = true
+                    end
+                else
+                    -- give dialogue here if handed wrong drinnk
+                end
+            end
+        end
+    
+        if fatGuyMoved then
+            fatGuy.x = fatGuy.x - fatGuy.speed * dt
+        end
+
+        -- block player 
+        if not fatGuyMoved and Utils.checkDist(player, fatGuy, fatGuyBlockRadius) then
+             local fatGuyCenterX = fatGuy.x + fatGuy.width/2
+            player.x = fatGuyCenterX - fatGuyBlockRadius - player.width / 2
+        end
+    end
+    
    
 end
 
@@ -418,6 +482,19 @@ function Level2.draw()
     if mom.isVisible then
         mom:draw()
     end
+    
+    -- fat guy
+    if fatGuy.x + fatGuy.width > 0 then
+        fatGuy:draw()
+
+        -- draw carried drink
+        if carriedDrink and fatGuyMoved then
+            love.graphics.setColor(carriedDrink.color[1], carriedDrink.color[2], carriedDrink.color[3], 1)
+            local drinkX = fatGuy.x + fatGuy.width - carriedDrink.width - 5
+            local drinkY = fatGuy.y + 10
+            love.graphics.rectangle("fill", drinkX, drinkY, carriedDrink.width, carriedDrink.height)
+        end
+    end
 
     -- draw fridge
     if childFound then
@@ -440,10 +517,7 @@ function Level2.draw()
         end
     end
 
-    -- fat guy
-    fatGuy:draw()
 end
-
 
 function Level2.getObjects()
     local objects = {}
@@ -512,5 +586,5 @@ function Level2.getAllObjects()
 end
 
 function Level2.isLevelSolved()
-    return shelfStacked and childFound and momAppeared
+    return shelfStacked and childFound and momAppeared and fatGuyMoved
 end

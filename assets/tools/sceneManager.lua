@@ -12,7 +12,7 @@ local scene_transition = {
 local current_level = 1
 
 function sceneManager.init()
-    current_level = 2
+    current_level = 1
     scene_transition.active = false
     scene_transition.fade_alpha = 0
 end
@@ -76,7 +76,12 @@ function sceneManager.switchToLevel(levelNum, world, player, WINDOWWIDTH, WINDOW
     end
 
     -- init new levels
-    if levelNum == 2 then
+    if levelNum == 3 then
+        Level3.init(world)
+        for i, obj in ipairs(Level3.getAllObjects()) do
+            table.insert(allObjects, obj)
+        end
+    elseif levelNum == 2 then
         Level2.init(world)
         for i, obj in ipairs(Level2.getAllObjects()) do
             table.insert(allObjects, obj)
@@ -102,6 +107,8 @@ function sceneManager.getCurrentLevelObjects()
         return Level1.getObjects()
     elseif current_level == 2 then
         return Level2.getObjects()
+    elseif current_level == 3 then
+        return Level3.getObjects()
     end
 
     return {}
@@ -112,6 +119,8 @@ function sceneManager.getCurrentLevelAllObjects()
         return Level1.getAllObjects()
     elseif current_level == 2 then
         return Level2.getAllObjects()
+    elseif current_level == 3 then
+        return Level3.getAllObjects()
     end
 
     return {}
@@ -129,7 +138,11 @@ function sceneManager.updateCurrentLevel(player, dt, selectedObjects, lasso_stat
         Level2.play(player, dt, selectedObjects, lasso_state, isMouseDragging, allObjects)
 
         -- check if level 2 is complete
-        
+        if Level2.isLevelSolved() then
+            sceneManager.startTransition(3)
+        end
+    elseif current_level == 3 then
+        Level3.play(player, dt, selectedObjects, lasso_state, isMouseDragging, allObjects)
     end
 
 end
@@ -139,6 +152,8 @@ function sceneManager.drawCurrentLevel()
         Level1.draw()
     elseif current_level == 2 then
         Level2.draw()
+    elseif current_level == 3 then
+        Level3.draw()
     end
 end
 
