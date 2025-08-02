@@ -15,6 +15,10 @@ local targetZones = {}
 local itemsStocked = 0
 local totalItems = 3
 
+-- second puzzle stuff
+local child, cerealBox
+local numCerealBoxes
+
 function Level2.init(world)
     -- create ground collider
     ground = world:newRectangleCollider(0, WINDOWHEIGHT - 300, WINDOWWIDTH * 4, 300)
@@ -86,7 +90,7 @@ function Level2.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
         local employeeCenterX = employee.x + employee.width/2
         player.x = employeeCenterX - employeeBlockRadius - player.width / 2
     end
-    
+
     -- check stocking and if placed correctly
     for i, item in ipairs(items) do
         if not item.isStocked then
