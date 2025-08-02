@@ -63,9 +63,9 @@ function Level1.init(world)
     invisibleWall:setType('static')
 
     -- create some balls
-    table.insert(bouncyBalls, BouncyBall(1250, WINDOWHEIGHT - 350, 15, {1, 0, 0}, world))
-    table.insert(bouncyBalls, BouncyBall(1280, WINDOWHEIGHT - 380, 15, {0, 1, 0}, world))
-    table.insert(bouncyBalls, BouncyBall(1310, WINDOWHEIGHT - 360, 15, {0, 0, 1}, world))
+    table.insert(bouncyBalls, BouncyBall(1000, WINDOWHEIGHT - 300, 15, {1, 0, 0}, world))
+    table.insert(bouncyBalls, BouncyBall(1000, WINDOWHEIGHT - 300, 15, {0, 1, 0}, world))
+    table.insert(bouncyBalls, BouncyBall(1000, WINDOWHEIGHT - 300, 15, {0, 0, 1}, world))
 
     -- create person
     person = NPC(1400, WINDOWHEIGHT - 380, 40, 80, {0.8, 0.6, 0.4}, 0) -- stationary for now...
@@ -199,17 +199,28 @@ function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
     dog:update(dt)
 
     -- check if dog is distracted by balls
-    local dogDistracted, _ = dog:isNearBalls(bouncyBalls, 80)
+    local dogDistracted, closestBall = dog:isNearBalls(bouncyBalls, 50)
     if dogDistracted and not ballsDistracted then
         ballsDistracted = true
 
         -- move dog and person to the left
-        dog.x = dog.x - dog.speed * dt
-        person.x = person.x - person.speed * dt
+        dog.isChasing = true
+        person.isFollowing = true
+    end
+
+    if dog.isChasing then
+        dog.x = dog.x - 50 * dt
+        person.x = person.x - 40 * dt
     end
 
     -- block player if the dog is in their way
-
+    if not ballsDistracted then
+        local dogBlockRadius = 60
+        if checkDist(player, dog, dogBlockRadius) then
+            local dogCenterX = dog.x + dog.width/2
+            player.x = dogCenterX - dogBlockRadius - player.width / 2
+        end
+    end
 end
 
 
@@ -256,9 +267,18 @@ function Level1.draw()
         love.graphics.circle("fill", sprinklerCenterX, sprinklerCenterY, sprinklerBlockRadius)
     end
 
+    person:draw()
+    dog:draw()
+
     -- draw balls
     for _, ball in ipairs(bouncyBalls) do
         ball:draw()
+    end
+
+    -- debug for doggie
+    if not ballsDistracted then
+        love.graphics.setColor(1, 0, 0, 0.1)
+        love.graphics.circle("fill", dog.x + dog.width/2, dog.y + dog.height/2, 60)
     end
 
 end
@@ -296,14 +316,18 @@ function Level1.getAllObjects()
 
     trashCan.isSelectable = false
     sprinkler.isSelectable = false
+    person.isSelectable = false
+    dog.isSelectable = false
     table.insert(objects, trashCan)
     table.insert(objects, sprinkler)
+    table.insert(objects, person)
+    table.insert(objects, dog)
 
     return objects
 end
 
 function Level1.isPuzzleSolved()
-    return dogPoopCleaned and sprinkerCovered
+    return dogPoopCleaned and sprinklerCovered and ballsDistracted
 end
 
 function Level1.getProgressGateX()

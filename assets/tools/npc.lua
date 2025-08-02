@@ -15,9 +15,19 @@ function NPC:new(x, y, width, height, color, moveRange)
     self.speed = 30
     self.dir = 1
     self.moveTimer = 0
+
+    -- chasing states
+    self.isChasing = false
+    self.isFollowing = false
 end
 
 function NPC:update(dt)
+    if self.isChasing or self.isFollowing then
+        -- don't do normal movement
+        return
+    end
+
+
     if self.moveRange > 0 then
         self.moveTimer = self.moveTimer + dt
 

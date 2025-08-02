@@ -36,6 +36,7 @@ function BouncyBall:update(dt, isBeingDragged, allObjects)
             local bodyX, bodyY = self.body:getPosition()
             self.x = bodyX - self.radius
             self.y = bodyY - self.radius
+
         end
     end
 end
