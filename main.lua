@@ -225,8 +225,27 @@ function love.mousemoved(x, y, dx, dy, istouch)
         for i, obj in ipairs(selectedObjects) do
             local offset = groupOffsets[obj]
             if offset then
-                obj.x = worldX - offset.x
-                obj.y = worldY - offset.y
+                -- obj.x = worldX - offset.x
+                -- obj.y = worldY - offset.y
+
+                local newX = worldX - offset.x
+                local newY = worldY - offset.y
+
+                -- get cam bounds
+                local camX, camY = cam:getPosition()
+ 
+                -- calculate cam bounds
+                local leftBound = camX - WINDOWWIDTH/2
+                local rightBound = camX + WINDOWWIDTH/2
+                local topBound = camY - WINDOWHEIGHT/2
+                local bottomBound = camY + WINDOWHEIGHT/2
+
+                -- clamp obj pos to stay w/in cam view
+                newX = math.max(leftBound, math.min(newX, rightBound - obj.width))
+                newY = math.max(topBound, math.min(newY, bottomBound - obj.height))
+
+                obj.x = newX
+                obj.y = newY
             end
         end
     end
