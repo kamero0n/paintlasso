@@ -190,7 +190,7 @@ end
 function Level1.draw()
     -- floor
     love.graphics.setColor(1, 1, 1, 1)
-    love.graphics.rectangle("fill", 0, WINDOWHEIGHT - 300, WINDOWWIDTH * 2, 300)
+    love.graphics.rectangle("fill", 0, WINDOWHEIGHT - 300, WINDOWWIDTH * 4, 300)
 
     -- draw objects
     if not dogPoopCleaned then
