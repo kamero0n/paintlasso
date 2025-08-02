@@ -56,6 +56,12 @@ function Level2.init(world)
         filled = false
     })
 
+    -- items should not be stocked init
+    for i, item in ipairs(items) do
+        item.itemType = i
+        item.isStocked = false
+    end
+
 end
 
 local function checkDist(obj1, obj2, threshold)
@@ -80,6 +86,17 @@ local function checkIfObjIsDragged(obj, selectedObjects, lasso_state, isMouseDra
     return isBeingDragged
 end
 
+local function checkItemInZone(item, zone)
+    local itemCenterX = item.x + item.width/2
+    local itemCenterY = item.y + item.height/2
+
+    -- check if item center is w/in zone bounds
+    local inHoriz = itemCenterX >= zone.x and itemCenterX <= zone.x + zone.width
+    local inVert = itemCenterY >= zone.y and itemCenterY <= zone.y + zone.height
+
+    return inHoriz and inVert
+end
+
 function Level2.play(player, dt, selectedObjects, lasso_state, isMouseDragging, allObjects)
     -- update employee
     employee:update(dt)
@@ -88,6 +105,43 @@ function Level2.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
     if not shelfStacked and checkDist(player, employee, employeeBlockRadius) then
         local employeeCenterX = employee.x + employee.width/2
         player.x = employeeCenterX - employeeBlockRadius - player.width / 2
+    end
+
+    -- check stocking and if placed correctly
+    for i, item in ipairs(items) do
+        if not item.isStocked then
+            local isItemBeingDragged = checkIfObjIsDragged(item, selectedObjects, lasso_state, isMouseDragging)
+            item:update(dt, isItemBeingDragged, allObjects)
+
+            -- check if item is in correct zone and not being dragged
+            if not isItemBeingDragged then
+                for j, zone in ipairs(targetZones) do
+                    if zone.itemType == item.itemType and checkItemInZone(item, zone) then
+                        -- snap item to zone center
+                        item.x = zone.x + zone.width / 2 - item.width/2
+                        item.y = zone.y + zone.height / 2 - item.height/2
+                        item.isStocked = true
+                        zone.filled = true
+
+                        -- destroy physics body
+                        if item.body then
+                            item.body:destroy()
+                            item.body = nil
+                        end
+                        break
+                    end
+                end
+            end
+        end
+
+        if item.isStocked then
+            itemsStocked = itemsStocked + 1
+        end
+    end
+
+    -- check if all items are stocked
+    if itemsStocked >= totalItems and not shelfStacked then
+        shelfStacked = true
     end
 end
 
@@ -149,4 +203,5 @@ function Level2.getAllObjects()
 end
 
 function Level2.isLevelSolved()
+    return shelfStacked
 end
