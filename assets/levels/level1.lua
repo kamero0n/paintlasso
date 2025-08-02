@@ -10,6 +10,13 @@ local PROGRESS_GATE_X = 750
 local trashThreshold = 40
 local poopThreshold = 50
 
+-- second puzzle stuff
+local trashCanLid, sprinkler
+local sprinklerCovered = false
+local PROGRESS_GATE_X2 = 1200
+local lidThreshold = 30
+local sprinklerBlockRadius = 80
+
 
 function Level1.init(world)
     -- create ground collider
@@ -28,10 +35,25 @@ function Level1.init(world)
         color = {0.3, 0.3, 0.3}
     }
 
+    -- create trashCanLid
+    trashCanLid = SelectableObject(PROGRESS_GATE_X + 50, WINDOWHEIGHT - 395, 70, 10, {0.5, 0.5, 0.5}, world)
+
+    -- create sprinkler
+    sprinkler = {
+        x = 900,
+        y = WINDOWHEIGHT - 330,
+        width = 20,
+        height = 30,
+        color = {0.6, 0.6, 0.6},
+        waterAngle = 0,
+        waterRange = 120,
+        active = true,
+        currentRadius = sprinklerBlockRadius
+    }
+
     -- create invisible gate
     invisibleWall = world:newRectangleCollider(PROGRESS_GATE_X, 0, 10, WINDOWHEIGHT - 300)
     invisibleWall:setType('static')
-
 end
 
 local function checkDist(obj1, obj2, threshold)
@@ -45,22 +67,44 @@ local function checkDist(obj1, obj2, threshold)
     return dist < threshold
 end
 
-
-function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, allObjects)
-    -- update dog poop
-    local isPoopBeingDragged = false
-    for j, selectedObj in ipairs(selectedObjects) do
-        if selectedObj == dogPoop and lasso_state == "dragging" and isMouseDragging then
-            isPoopBeingDragged = true
-            break
+local function checkIfObjIsDragged(obj, selectedObjects, lasso_state, isMouseDragging)
+    local isBeingDragged = false
+    for j, selectedOBj in ipairs(selectedObjects) do
+        if selectedOBj == obj and lasso_state == "dragging" and isMouseDragging then
+                isBeingDragged = true
         end
     end
-    dogPoop:update(dt, isPoopBeingDragged, allObjects)
+
+    return isBeingDragged
+end
+
+local function isLidOnSprinkler()
+    local lidCenterX = trashCanLid.x + trashCanLid.width/2
+    local sprinklerCenterX = sprinkler.x + sprinkler.width /2
+    local horizDist = math.abs(lidCenterX - sprinklerCenterX)
+
+    local verticalDist = math.abs((trashCanLid.y + trashCanLid.height) - sprinkler.y)
+
+    return horizDist <= sprinkler.width / 2 + 10 and verticalDist <= 5
+end
+
+function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, allObjects)
+    -- first puzzle --
+    -- update dog poop
+    local isPoopBeingDragged = checkIfObjIsDragged(dogPoop, selectedObjects, lasso_state, isMouseDragging)
 
     -- check if poop has been picked up
-    if not dogPoopCleaned then
-        local checkPoopToTrash = checkDist(dogPoop, trashCan, trashThreshold)
-        if checkPoopToTrash then
+    if not dogPoopCleaned and not isPoopBeingDragged then
+        -- check horizontal dist
+        local poopCenterX = dogPoop.x + dogPoop.width/2
+        local trashCenterX = trashCan.x + trashCan.width/2
+        local horizDist = math.abs(poopCenterX - trashCenterX)
+
+        local poopBottom = dogPoop.y + dogPoop.height
+        local trashTop = trashCan.y
+        local verticalDist = math.abs(poopBottom - trashTop)
+
+        if verticalDist <= 5 and horizDist <= 30 then
             dogPoopCleaned = true
             -- remove invisibleWall
             if invisibleWall then
@@ -75,6 +119,11 @@ function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
         end
     end
 
+    if not dogPoopCleaned then
+        dogPoop:update(dt, isPoopBeingDragged, allObjects)
+    end
+
+    -- check if the player is trying to go over the poop
     if not dogPoopCleaned and checkDist(dogPoop, player, poopThreshold) then
         -- push back player
         local poopCenterX = dogPoop.x + dogPoop.width / 2
@@ -84,6 +133,41 @@ function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
     -- limit player movement if dog poop not solved
     if not dogPoopCleaned and player.x > PROGRESS_GATE_X - player.width then
         player.x = PROGRESS_GATE_X - player.width
+    end
+
+    -- second puzzle -- 
+    -- update trash can lid
+    local isLidBeingDragged = checkIfObjIsDragged(trashCanLid, selectedObjects, lasso_state, isMouseDragging)
+    trashCanLid:update(dt, isLidBeingDragged, allObjects)
+
+    if isLidOnSprinkler() and not isLidBeingDragged then
+        if not sprinklerCovered then
+            -- gradually decrease sprinkler
+            sprinkler.currentRadius = sprinkler.currentRadius - 60 * dt -- rate of 60% ish.. i think
+            if sprinkler.currentRadius <= 0 then
+                sprinkler.currentRadius = 0
+                sprinkler.active = false
+                sprinklerCovered = true
+            end
+        end
+    else
+        -- reset sprinkler if we move the lid
+        if not isLidBeingDragged then
+            sprinkler.active = true
+            sprinkler.currentRadius = sprinklerBlockRadius
+            sprinklerCovered = false
+        end
+    end
+
+    -- chcheck water line collision and push player away
+    if sprinkler.active and sprinkler.currentRadius > 0 and checkDist(player, sprinkler, sprinkler.currentRadius) then
+        local sprinklerCenterX = sprinkler.x + sprinkler.width/2
+        player.x = sprinklerCenterX - sprinkler.currentRadius - player.width / 2
+    end
+        
+    -- limit player movemment if sprinker not solved
+    if not sprinklerCovered and player.x > PROGRESS_GATE_X2 - player.width then
+        player.x = PROGRESS_GATE_X2 - player.width
     end
 end
 
@@ -114,21 +198,66 @@ function Level1.draw()
         love.graphics.rectangle("fill", PROGRESS_GATE_X, 0, 10, WINDOWHEIGHT - 300)
     end
 
+    -- draw trashCan lid
+    trashCanLid:draw()
+
+    -- draw sprinkler
+    love.graphics.setColor(sprinkler.color[1], sprinkler.color[2], sprinkler.color[3])
+    love.graphics.rectangle("fill", sprinkler.x, sprinkler.y, sprinkler.width, sprinkler.height)
+
+    -- draw simple spray
+    if sprinkler.active and sprinkler.currentRadius > 0.5 then
+        love.graphics.setColor(0.3, 0.6, 1, 0.3)
+        local sprinklerCenterX = sprinkler.x + sprinkler.width/2
+        local sprinklerCenterY = sprinkler.y + sprinkler.height/2
+
+        -- draw spray radius
+        love.graphics.circle("fill", sprinklerCenterX, sprinklerCenterY, sprinklerBlockRadius)
+    end
+
 end
 
 function Level1.getObjects()
-    -- only return selectableObjects
-    if dogPoopCleaned then
-        return {}
-    else
-        return {dogPoop}
+    local objects = {}
+
+    -- always include available selectable objects
+    if not dogPoopCleaned then
+        table.insert(objects, dogPoop)
     end
+
+    table.insert(objects, trashCanLid)
+
+    return objects
+end
+
+function Level1.getAllObjects()
+    local objects = {}
+
+    -- include selectables + non-selectables
+    if not dogPoopCleaned then
+        table.insert(objects, dogPoop)
+    end
+
+    table.insert(objects, trashCanLid)
+
+    trashCan.isSelectable = false
+    sprinkler.isSelectable = false
+    table.insert(objects, trashCan)
+    table.insert(objects, sprinkler)
+
+    return objects
 end
 
 function Level1.isPuzzleSolved()
-    return dogPoopCleaned
+    return dogPoopCleaned and sprinkerCovered
 end
 
 function Level1.getProgressGateX()
-    return PROGRESS_GATE_X
+    if not dogPoopCleaned then
+        return PROGRESS_GATE_X
+    elseif not sprinkerCovered then
+        return PROGRESS_GATE_X2
+    else
+        return math.huge
+    end
 end

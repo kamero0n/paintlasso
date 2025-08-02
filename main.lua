@@ -84,7 +84,7 @@ function love.load()
 
     Level1.init(world)
 
-    for i, obj in ipairs(Level1.getObjects()) do
+    for i, obj in ipairs(Level1.getAllObjects()) do
         table.insert(allObjects, obj)
     end
 
@@ -142,7 +142,7 @@ function love.update(dt)
 
     -- update allObjects list
     allObjects = {}
-    for i, obj in ipairs(Level1.getObjects()) do
+    for i, obj in ipairs(Level1.getAllObjects()) do
         table.insert(allObjects, obj)
     end
 end
@@ -291,7 +291,7 @@ function love.mousereleased(x, y, button, istouch)
             selectedObjects = {}
             
             -- check all objects for selection
-            for i, obj in ipairs(allObjects) do 
+            for i, obj in ipairs(Level1.getObjects()) do 
                 if pos.x <= obj.x and obj.x + obj.width <= pos.x + pos.width
                     and pos.y <= obj.y and obj.y + obj.height <= pos.y + pos.height
                 then
