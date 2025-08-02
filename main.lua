@@ -2,6 +2,7 @@ require "assets/tools/lassoObjects"
 require "assets/levels/level1"
 require "assets/levels/level2"
 anim8 = require 'assets/libraries/anim8'
+gamera = require 'assets/libraries/gamera'
 wf = require "assets/libraries/windfield"
 local sceneManager = require "assets/tools/sceneManager"
 
@@ -28,10 +29,7 @@ local groupOffsets = {} -- store offset for selected objects
 local allObjects = {}
 
 -- CAMERA
-local camera = {
-    x = 0,
-    y = 0
-}
+local cam = gamera.new(0, 0, WINDOWWIDTH*4, WINDOWHEIGHT)
 
 
 function love.load()
@@ -96,20 +94,7 @@ function love.load()
 end
 
 function updateCamera()
-    -- camera follows player
-    local targetX = player.x - WINDOWWIDTH / 2
-    local targetY = player.y - WINDOWHEIGHT / 2
-
-    -- keep camera w/in bounds
-    if targetX < 0 then
-        targetX = 0
-    end
-
-    -- limit camera based on curr zone -- add this later
-    
-
-    camera.x = targetX
-    camera.y = targetY
+   cam:setPosition(player.x, player.y)
 end
 
 function love.update(dt)
@@ -156,12 +141,11 @@ function love.update(dt)
 end
 
 function love.mousepressed(x, y, button, istouch)
+    local worldX, worldY = cam:toWorld(x, y)
+
     if sceneManager.isTransitioning() then 
         return     
     end
-
-    local worldX = x + camera.x
-    local worldY = y + camera.y
 
     if button == 1  then
         --cursor animation play
@@ -226,8 +210,7 @@ function love.mousepressed(x, y, button, istouch)
 end
 
 function love.mousemoved(x, y, dx, dy, istouch)
-    local worldX = x + camera.x
-    local worldY = y + camera.y
+    local worldX, worldY = cam:toWorld(x, y)
 
     --update cursor animation location
     cursor.x = x
@@ -327,34 +310,37 @@ function love.draw()
     love.graphics.setCanvas(gameCanvas)
     love.graphics.clear(0, 0, 0, 1)
 
+    --put everything you want drawn and gamera transforms it automatically
+    cam:draw(function(l,t,w,h)
+        -- draw world elements
+        ---Level1.draw()
+          sceneManager.drawCurrentLevel()
+
     -- apply camera transform
-    love.graphics.push()
-    love.graphics.translate(-camera.x, -camera.y)
 
     -- draw world elements
     --Level1.draw()
-    sceneManager.drawCurrentLevel()
 
-    love.graphics.setColor(1, 1, 1, 1) -- set to white
-    if isMouseDragging and lasso_state == "selecting" then
-        local pos = {
-            x = math.min(firstCorner.x, secondCorner.x),
-            y = math.min(firstCorner.y, secondCorner.y)
-        }
+        love.graphics.setColor(1, 1, 1, 1) -- set to white
+        if isMouseDragging and lasso_state == "selecting" then
+            local pos = {
+                x = math.min(firstCorner.x, secondCorner.x),
+                y = math.min(firstCorner.y, secondCorner.y)
+            }
 
-        local width = math.abs(firstCorner.x - secondCorner.x)
-        local height = math.abs(firstCorner.y - secondCorner.y)
+            local width = math.abs(firstCorner.x - secondCorner.x)
+            local height = math.abs(firstCorner.y - secondCorner.y)
 
-        love.graphics.rectangle("line", pos.x, pos.y, width, height)
+            love.graphics.rectangle("line", pos.x, pos.y, width, height)
+        end
+
+        -- draw player
+        love.graphics.setColor(0, 0, 0.8, 1)
+        love.graphics.rectangle("fill", player.x, player.y, player.width, player.height)
+
+        love.graphics.setColor(1, 1, 1, 1)
     end
-
-    -- draw player
-    love.graphics.setColor(0, 0, 0.8, 1)
-    love.graphics.rectangle("fill", player.x, player.y, player.width, player.height)
-
-    love.graphics.setColor(1, 1, 1, 1)
-    -- remove camera transform
-    love.graphics.pop()
+    )
 
     love.graphics.setCanvas()
     -- draw the canvas
