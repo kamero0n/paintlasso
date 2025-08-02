@@ -1,3 +1,5 @@
+require "assets/tools/bouncyBalls"
+
 Level1 = {}
 
 -- window stuff
@@ -14,13 +16,15 @@ local poopThreshold = 50
 local trashCanLid, sprinkler
 local sprinklerCovered = false
 local PROGRESS_GATE_X2 = 1200
-local lidThreshold = 30
 local sprinklerBlockRadius = 80
 
+-- third puzzle stuff
+local person, dog
+local bouncyBalls = {}
 
 function Level1.init(world)
     -- create ground collider
-    ground = world:newRectangleCollider(0, WINDOWHEIGHT - 300, WINDOWWIDTH * 2, 300)
+    ground = world:newRectangleCollider(0, WINDOWHEIGHT - 300, WINDOWWIDTH * 4, 300)
     ground:setType('static')
 
     -- create dog poop
@@ -54,6 +58,11 @@ function Level1.init(world)
     -- create invisible gate
     invisibleWall = world:newRectangleCollider(PROGRESS_GATE_X, 0, 10, WINDOWHEIGHT - 300)
     invisibleWall:setType('static')
+
+    -- create some balls
+    table.insert(bouncyBalls, BouncyBall(1250, WINDOWHEIGHT - 350, 15, {1, 0, 0}, world))
+    table.insert(bouncyBalls, BouncyBall(1280, WINDOWHEIGHT - 380, 15, {0, 1, 0}, world))
+    table.insert(bouncyBalls, BouncyBall(1310, WINDOWHEIGHT - 360, 15, {0, 0, 1}, world))
 end
 
 local function checkDist(obj1, obj2, threshold)
@@ -169,6 +178,12 @@ function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
     if not sprinklerCovered and player.x > PROGRESS_GATE_X2 - player.width then
         player.x = PROGRESS_GATE_X2 - player.width
     end
+
+    -- third puzzle --
+    for _, ball in ipairs(bouncyBalls) do
+        local isBallBeingDragged = checkIfObjIsDragged(ball, selectedObjects, lasso_state, isMouseDragging)
+        ball:update(dt, isBallBeingDragged, allObjects)
+    end
 end
 
 
@@ -215,6 +230,11 @@ function Level1.draw()
         love.graphics.circle("fill", sprinklerCenterX, sprinklerCenterY, sprinklerBlockRadius)
     end
 
+    -- draw balls
+    for _, ball in ipairs(bouncyBalls) do
+        ball:draw()
+    end
+
 end
 
 function Level1.getObjects()
@@ -226,6 +246,10 @@ function Level1.getObjects()
     end
 
     table.insert(objects, trashCanLid)
+
+    for _, ball in ipairs(bouncyBalls) do
+        table.insert(objects, ball)
+    end
 
     return objects
 end
@@ -239,6 +263,10 @@ function Level1.getAllObjects()
     end
 
     table.insert(objects, trashCanLid)
+
+    for _, ball in ipairs(bouncyBalls) do
+        table.insert(objects, ball)
+    end
 
     trashCan.isSelectable = false
     sprinkler.isSelectable = false

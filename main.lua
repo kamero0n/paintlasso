@@ -100,14 +100,8 @@ function updateCamera()
         targetX = 0
     end
 
-    -- limit camera based on curr zone
-    if not Level1.isPuzzleSolved() then
-        -- camera can't move past gate
-        local maxCameraX = Level1.getProgressGateX() - WINDOWWIDTH / 2
-        if targetX > maxCameraX then
-            targetX = maxCameraX
-        end
-    end
+    -- limit camera based on curr zone -- add this later
+    
 
     camera.x = targetX
     camera.y = targetY
