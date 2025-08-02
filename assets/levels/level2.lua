@@ -25,7 +25,7 @@ function Level2.init(world)
     ground:setType('static')
 
     -- create employee
-    employee = NPC(400, WINDOWHEIGHT - 380, 40, 80, {0.2, 0.4, 0.8}, 20)
+    employee = NPC(400, WINDOWHEIGHT - 380, 40, 80, {0.2, 0.4, 0.8}, 30)
 
     -- items to stock
     table.insert(items, SelectableObject(150, WINDOWHEIGHT - 330, 30, 30, {0.8, 0.2, 0.2}, world))
@@ -66,6 +66,9 @@ function Level2.init(world)
         item.itemType = i
         item.isStocked = false
     end
+
+    -- add the crying child
+    
 
 end
 
@@ -140,9 +143,6 @@ function Level2.draw()
     love.graphics.rectangle("fill", 360, WINDOWHEIGHT - 380, 200, 20)
     love.graphics.rectangle("fill", 360, WINDOWHEIGHT - 330, 200, 20)
 
-    -- draw employee
-    employee:draw()
-
     -- draw target zones for items
     for _, zone in ipairs(targetZones) do
         love.graphics.setColor(zone.color[1], zone.color[2], zone.color[3], zone.filled and 0.1 or 0.3)
@@ -154,8 +154,8 @@ function Level2.draw()
         item:draw()
     end
 
-
-
+    -- draw employee
+    employee:draw()
 end
 
 
