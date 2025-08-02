@@ -10,10 +10,13 @@ function BouncyBall:new(x, y, radius, color, world)
     self.bounceDamping = 0.7 -- how much it loses on bounce
     self.minBounceVel = 50 -- min velocity to bounce
     self.world = world
+    self.chaseVelX = 0
+    self.chaseVelY = 0
 
     -- bouncing state
     self.isBouncing = false
-    
+    self.isChasing = false
+
     -- override to be circle
     if self.body then
         self.body:destroy()
@@ -24,6 +27,7 @@ function BouncyBall:new(x, y, radius, color, world)
         self.body:setCategory(2)
     end
 end
+
 
 function BouncyBall:update(dt, isBeingDragged, allObjects)
     if isBeingDragged then

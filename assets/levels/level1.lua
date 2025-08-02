@@ -25,6 +25,9 @@ local bouncyBalls = {}
 local PROGRESS_GATE_X3 = 1600
 local ballsDistracted = false
 
+-- fourth puzzle stuff
+local playerDog, cat, treeBase, treeBranch, box, kiddieSlide
+
 function Level1.init(world)
     -- create ground collider
     ground = world:newRectangleCollider(0, WINDOWHEIGHT - 300, WINDOWWIDTH * 4, 300)
@@ -73,6 +76,41 @@ function Level1.init(world)
     -- create dog
     dog = NPC(1350, WINDOWHEIGHT - 340, 50, 40, {0.6, 0.4, 0.2}, 100) -- moves a bit back and forth
 
+    -- create tree base
+    treeBase = {
+        x = 1800,
+        y = WINDOWHEIGHT - 600,
+        width = 80,
+        height = 300,
+        color = {0.4, 0.2, 0.1}
+    }
+    -- tree branch
+    treeBranch = {
+        x = 1720,
+        y = WINDOWHEIGHT - 500,
+        width = 80,
+        height = 20,
+        color = {0.4, 0.2, 0.1}
+    }
+
+    -- create dog
+    playerDog = {
+        x = 1750,
+        y = WINDOWHEIGHT - 530,
+        width = 30,
+        height = 30,
+        color = {0.8, 0.6, 0.2},
+        isRescued = false
+    }
+
+    -- catto
+    cat = NPC(1750, WINDOWHEIGHT - 340, 35, 30, {0.3, 0.3, 0.3}, 80)
+
+    -- create box
+    box = SelectableObject(1700, WINDOWHEIGHT - 350, 50, 50, {0.6, 0.4, 0.2}, world)
+
+    -- create kiddieSlide
+    kiddieSlide = SelectableObject(1650, WINDOWHEIGHT - 370, 50, 70, {1, 0.2, 0.2}, world)
 end
 
 local function checkDist(obj1, obj2, threshold)
@@ -203,6 +241,11 @@ function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
     if dogDistracted and not ballsDistracted then
         ballsDistracted = true
 
+        if trashCanLid.body then
+            trashCanLid.body:destroy()
+            trashCanLid.body = nil
+        end
+
         -- move the balls to the left
         for _, ball in ipairs(bouncyBalls) do
             if ball.body then
@@ -270,7 +313,7 @@ function Level1.draw()
         local sprinklerCenterX = sprinkler.x + sprinkler.width/2
         local sprinklerCenterY = sprinkler.y + sprinkler.height/2
 
-        -- draw spray radius
+        -- draw spray radius / debug
         love.graphics.circle("fill", sprinklerCenterX, sprinklerCenterY, sprinklerBlockRadius)
     end
 
@@ -287,6 +330,23 @@ function Level1.draw()
         love.graphics.setColor(1, 0, 0, 0.1)
         love.graphics.circle("fill", dog.x + dog.width/2, dog.y + dog.height/2, 60)
     end
+
+    -- draw tree
+    love.graphics.setColor(treeBase.color[1], treeBase.color[2], treeBase.color[3], 1)
+    love.graphics.rectangle("fill", treeBase.x, treeBase.y, treeBase.width, treeBase.height)
+
+    -- draw branch
+    love.graphics.setColor(treeBranch.color[1], treeBranch.color[2], treeBranch.color[3], 1)
+    love.graphics.rectangle("fill", treeBranch.x, treeBranch.y, treeBranch.width, treeBranch.height)
+
+
+    -- draw dog
+    love.graphics.setColor(playerDog.color[1], playerDog.color[2], playerDog.color[3], 1)
+    love.graphics.rectangle("fill", playerDog.x, playerDog.y, playerDog.width, playerDog.height)
+
+    cat:draw()
+    box:draw()
+    kiddieSlide:draw()
 
 end
 
@@ -320,15 +380,26 @@ function Level1.getAllObjects()
     for _, ball in ipairs(bouncyBalls) do
         table.insert(objects, ball)
     end
+    
+    table.insert(objects, box)
+    table.insert(objects, kiddieSlide)
 
     trashCan.isSelectable = false
     sprinkler.isSelectable = false
     person.isSelectable = false
     dog.isSelectable = false
+    treeBase.isSelectable = false
+    treeBranch.isSelectable = false
+    playerDog.isSelectable = false
+    cat.isSelectable = false
     table.insert(objects, trashCan)
     table.insert(objects, sprinkler)
     table.insert(objects, person)
     table.insert(objects, dog)
+    table.insert(objects, treeBase)
+    table.insert(objects, treeBranch)
+    table.insert(objects, playerDog)
+    table.insert(objects, cat)
 
     return objects
 end
