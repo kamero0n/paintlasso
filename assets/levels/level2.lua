@@ -16,8 +16,13 @@ local itemsStocked = 0
 local totalItems = 3
 
 -- second puzzle stuff
-local child, cerealBox
-local numCerealBoxes
+local child, mom
+local cerealBoxes = {}
+local numCerealBoxes = 5
+local childVisHeight = 100
+local childBlockRadius = 50
+local childFound = false
+local momAppeared = false
 
 function Level2.init(world)
     -- create ground collider
@@ -25,7 +30,7 @@ function Level2.init(world)
     ground:setType('static')
 
     -- create employee
-    employee = NPC(400, WINDOWHEIGHT - 380, 40, 80, {0.2, 0.4, 0.8}, 30)
+    employee = NPC(400, WINDOWHEIGHT - 380, 40, 80, {0.2, 0.4, 0.8}, 40)
 
     -- items to stock
     table.insert(items, SelectableObject(150, WINDOWHEIGHT - 330, 30, 30, {0.8, 0.2, 0.2}, world))
@@ -68,11 +73,34 @@ function Level2.init(world)
     end
 
     -- add the crying child
-    
+    child = NPC(1000, WINDOWHEIGHT - 350, 40, 50, {0.3, 0.4, 0.9}, 5)
+    child.velocityY = 0
+    child.gravity = 800
+    child.groundY = WINDOWHEIGHT - 300
+    child.isGrounded = false
+
+    -- add cereal boxes
+    for i = 1, numCerealBoxes do
+        local box = SelectableObject(
+            880 + (i * 60),
+            WINDOWHEIGHT - 460,
+            50,
+            30,
+            {0.9, 0.7, 0.3},
+            world
+        )
+        box.isCerealBox = true
+        table.insert(cerealBoxes, box)
+    end
+
+    -- mom npc
+    mom = NPC(1800, WINDOWHEIGHT - 380, 40, 80, {0.8, 0.3, 0.6}, 0)
+    mom.isVisible = false
+    mom.speed = 200 -- RUN to the child
 
 end
 
-
+-- check if item is placed in the right zone
 local function checkItemInZone(item, zone)
     local itemCenterX = item.x + item.width/2
     local itemCenterY = item.y + item.height/2
@@ -84,7 +112,131 @@ local function checkItemInZone(item, zone)
     return inHoriz and inVert
 end
 
+-- check if child is standing on box
+local function getChildSupportingBox()
+    local childBottom = child.y + child.height
+    local childLeft = child.x
+    local childRight = child.x + child.width
+    local childCenterX = child.x + child.width/2
+
+    local highestSupportingBox = nil
+    local highestY = WINDOWHEIGHT
+
+    -- check all cereal boxes
+    for _, box in ipairs(cerealBoxes) do
+        local boxTop = box.y
+        local boxLeft = box.x
+        local boxRight = box.x + box.width
+
+        -- check if child overlaps horizontally with box
+        local horizOverlap = (childRight > boxLeft and childLeft < boxRight)
+
+        if horizOverlap and boxTop < highestY then
+            -- this box could support child but check if it's the tallest one in the stack
+            if boxTop < childBottom + 5 then
+                highestY = boxTop
+                highestSupportingBox = box
+            end
+        end
+    end
+
+    return highestSupportingBox, highestY
+end
+
+-- handle physics for child puzzle
+local function updateChildPhysics(dt, allObjects)
+    local supportingBox, supportY = getChildSupportingBox()
+
+    if supportingBox then
+        -- child supported by box
+        child.y = supportY - child.height
+        child.velocityY = 0
+        child.isGrounded = true
+
+        -- keep child on box if its moved
+        local boxCenterX = supportingBox.x + supportingBox.width / 2
+        local childCenterX = child.x + child.width / 2
+
+        -- adjust
+        local maxAdjust = 50 * dt
+        local diff = boxCenterX - childCenterX
+        if math.abs(diff) > 5 then
+            if diff > 0 then
+                child.x =  child.x + math.min(maxAdjust, diff)
+            else
+                child.x = child.x + math.max(-maxAdjust, diff)
+            end
+        end
+    else
+        -- child not supported
+        child.isGrounded = false
+        child.velocityY = child.velocityY + child.gravity * dt
+        child.y = child.y + child.velocityY * dt
+
+        -- check if hit ground
+        if child.y + child.height >= child.groundY then
+            child.y = child.groundY - child.height
+            child.velocityY = 0
+            child.isGrounded = true
+        end
+    end
+end
+
+-- check if all cereal boxes are stacked under kid
+local function checkAllBoxesUnderChild()
+    local childCenterX = child.x + child.width/2
+    local childBottom = child.y + child.height
+
+    local boxesUnderChild = {}
+    for _, box in ipairs(cerealBoxes) do
+        local boxLeft = box.x
+        local boxRight = box.x + box.width
+        local boxCenterX = box.x + box.width /2
+
+        local horizOverlap = (childCenterX >= boxLeft - 10 and childCenterX <= boxRight + 10)
+
+        if horizOverlap then
+            table.insert(boxesUnderChild, box)
+        end
+    end
+
+    if #boxesUnderChild < numCerealBoxes then
+        return false
+    end
+
+   -- sort boxes by Y pos
+   table.sort(boxesUnderChild, function(a, b) return a.y < b.y end)
+
+   -- check if boxes form continuous stack
+   local expectedY = childBottom
+   local tolerance = 15
+
+   for i, box in ipairs(boxesUnderChild) do
+        local boxTop = box.y
+        local boxBottom = box.y + box.height
+
+        -- check if box pos correctly
+        if i == 1 then
+            if boxTop > expectedY + tolerance then
+                return false
+            end
+        else
+            local prevBox = boxesUnderChild[i-1]
+            local prevBoxBottom = prevBox.y + prevBox.height
+
+            if boxTop > prevBoxBottom + tolerance then
+                return false
+            end
+        end
+
+        expectedY = boxBottom
+   end
+
+   return true
+end
+
 function Level2.play(player, dt, selectedObjects, lasso_state, isMouseDragging, allObjects)
+    -- first puzzle --
     -- update employee
     employee:update(dt)
 
@@ -132,6 +284,47 @@ function Level2.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
     if itemsStocked >= totalItems and not shelfStacked then
         shelfStacked = true
     end
+
+    -- second puzzle --
+    if shelfStacked then
+        child:update(dt)
+
+        -- update cereal boxes
+        for _, box in ipairs(cerealBoxes) do
+            local isBoxBeingDragged = Utils.checkIfObjIsDragged(box, selectedObjects, lasso_state, isMouseDragging)
+            box:update(dt, isBoxBeingDragged, allObjects)
+        end
+
+        -- update child physics to handle being pushed up by boxes
+        updateChildPhysics(dt, allObjects)
+
+        -- check if boxes are under child
+        if not childFound and checkAllBoxesUnderChild() then
+            childFound = true
+            momAppeared = true
+            mom.isVisible = true
+        end
+
+        -- block player if child is not found by mom 
+        if not childFound then
+            local childRightSide = child.x + child.width
+            local barrierX = childRightSide + childBlockRadius
+            
+            if player.x + player.width > barrierX then
+                player.x = barrierX - player.width
+            end
+        end
+
+        -- mom walks in from the right
+        if momAppeared and mom.isVisible then
+            if mom.x > child.x + 100 then
+                mom.x = mom.x - mom.speed * dt
+            end
+        end
+       
+    end
+
+   
 end
 
 function Level2.draw()
@@ -158,6 +351,27 @@ function Level2.draw()
 
     -- draw employee
     employee:draw()
+
+    -- create MORE shelves
+    love.graphics.setColor(0.6, 0.4, 0.2, 1)
+    love.graphics.rectangle("fill", 880, WINDOWHEIGHT - 430, 300, 20)
+    love.graphics.rectangle("fill", 880, WINDOWHEIGHT - 380, 300, 20)
+    love.graphics.rectangle("fill", 880, WINDOWHEIGHT - 330, 300, 20)
+
+    -- draw cereal boxes
+    if shelfStacked then
+        for _,box in ipairs(cerealBoxes) do 
+            box:draw()
+        end
+    end
+
+    -- draw child
+    child:draw()
+
+    -- draw mom if visible
+    if mom.isVisible then
+        mom:draw()
+    end
 end
 
 
@@ -167,6 +381,12 @@ function Level2.getObjects()
     for _, item in ipairs(items) do
         if not item.isStocked then
             table.insert(objects, item)
+        end
+    end
+
+    if shelfStacked then
+        for _, box in ipairs(cerealBoxes) do
+            table.insert(objects, box)
         end
     end
 
@@ -182,12 +402,25 @@ function Level2.getAllObjects()
         end
     end
 
+    if shelfStacked then
+        for _, box in ipairs(cerealBoxes) do
+            table.insert(objects, box)
+        end
+    end
+
     employee.isSelectable = false
+    child.isSelectable = false
     table.insert(objects, employee)
+    table.insert(objects, child)
+
+    if mom.isVisible then
+        mom.isSelectable = false
+        table.insert(objects, mom)
+    end
 
     return objects
 end
 
 function Level2.isLevelSolved()
-    return shelfStacked
+    return shelfStacked and childFound and momAppeared
 end
