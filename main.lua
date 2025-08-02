@@ -4,6 +4,7 @@ require "assets/levels/level2"
 anim8 = require 'assets/libraries/anim8'
 gamera = require 'assets/libraries/gamera'
 wf = require "assets/libraries/windfield"
+local sceneManager = require "assets/tools/sceneManager"
 
 local WINDOWWIDTH, WINDOWHEIGHT = love.graphics.getDimensions()
 
@@ -29,6 +30,7 @@ local allObjects = {}
 
 -- CAMERA
 local cam = gamera.new(0, 0, WINDOWWIDTH*4, WINDOWHEIGHT)
+
 
 function love.load()
     love.graphics.setDefaultFilter("nearest", "nearest")
@@ -82,9 +84,10 @@ function love.load()
             cursor.animations.leftClick = anim8.newAnimation(cursor.grid('1-4', 1), 0.2)
     cursor.x, cursor.y =  love.mouse.getPosition()
 
-    Level1.init(world)
+    sceneManager.init()
+    Level2.init(world)
 
-    for i, obj in ipairs(Level1.getAllObjects()) do
+    for i, obj in ipairs(Level2.getAllObjects()) do
         table.insert(allObjects, obj)
     end
 
@@ -97,6 +100,12 @@ end
 function love.update(dt)
     -- world update
     world:update(dt)
+
+    -- update scene transitions
+    local isTransitioning = sceneManager.update(dt, world, player, WINDOWWIDTH, WINDOWHEIGHT, camera, allObjects)
+    if isTransitioning then
+        return
+    end
 
     -- store player pos
     local prevPos = player.x
@@ -118,18 +127,25 @@ function love.update(dt)
     -- update camera
     updateCamera()
 
+    -- update level from scene manager
+    sceneManager.updateCurrentLevel(player, dt, selectedObjects, lasso_state, isMouseDragging, allObjects)
+
     -- first level
-    Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, allObjects)
+    --Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, allObjects)
 
     -- update allObjects list
     allObjects = {}
-    for i, obj in ipairs(Level1.getAllObjects()) do
+    for i, obj in ipairs(sceneManager.getCurrentLevelAllObjects()) do
         table.insert(allObjects, obj)
     end
 end
 
 function love.mousepressed(x, y, button, istouch)
     local worldX, worldY = cam:toWorld(x, y)
+
+    if sceneManager.isTransitioning() then 
+        return     
+    end
 
     if button == 1  then
         --cursor animation play
@@ -274,7 +290,7 @@ function love.mousereleased(x, y, button, istouch)
             selectedObjects = {}
             
             -- check all objects for selection
-            for i, obj in ipairs(Level1.getObjects()) do 
+            for i, obj in ipairs(sceneManager.getCurrentLevelObjects()) do 
                 if pos.x <= obj.x and obj.x + obj.width <= pos.x + pos.width
                     and pos.y <= obj.y and obj.y + obj.height <= pos.y + pos.height
                 then
@@ -297,7 +313,13 @@ function love.draw()
     --put everything you want drawn and gamera transforms it automatically
     cam:draw(function(l,t,w,h)
         -- draw world elements
-        Level1.draw()
+        ---Level1.draw()
+          sceneManager.drawCurrentLevel()
+
+    -- apply camera transform
+
+    -- draw world elements
+    --Level1.draw()
 
         love.graphics.setColor(1, 1, 1, 1) -- set to white
         if isMouseDragging and lasso_state == "selecting" then
@@ -323,6 +345,10 @@ function love.draw()
     love.graphics.setCanvas()
     -- draw the canvas
     love.graphics.draw(gameCanvas, 0, 0);
+
+    -- draw scene transition overal
+    sceneManager.draw(WINDOWWIDTH, WINDOWHEIGHT)
+
     if cursor.animationPlay then
         cursor.animations.leftClick:draw(cursor.sparkle, cursor.x, cursor.y, nil, 2, 2)
     end
