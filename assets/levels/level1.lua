@@ -111,7 +111,7 @@ function Level1.init(world)
     box = SelectableObject(1650, WINDOWHEIGHT - 350, 50, 50, {0.6, 0.4, 0.2}, world)
 
     -- create kiddieSlide
-    kiddieSlide = SelectableObject(1600, WINDOWHEIGHT - 370, 50, 70, {1, 0.2, 0.2}, world)
+    kiddieSlide = SelectableObject(1550, WINDOWHEIGHT - 370, 50, 70, {1, 0.2, 0.2}, world)
 end
 
 local function checkDist(obj1, obj2, threshold)
@@ -159,6 +159,22 @@ local function isCatTrapped()
     local atSameLevel = math.abs(boxBottom - catBottom) <= 10
 
     return horizontalOverlap and atSameLevel
+end
+
+local function isSlideInPos()
+    -- check if slide is near dog to help it get down
+    local branchCenterX = treeBranch.x + treeBranch.width/2
+    local slideCenterX = kiddieSlide.x + kiddieSlide.width/2
+    local horizDist = math.abs(branchCenterX - slideCenterX)
+
+    local slideTop = kiddieSlide.y
+    local branchBot = treeBranch.y + treeBranch.height
+    local verticalDist = math.abs(slideTop - branchBot)
+
+    -- also check if scaled enough
+    local isScaledUp = kiddieSlide.height >= 100
+
+    return horizDist <= 30 and verticalDist <= 15 and isScaledUp
 end
 
 function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, allObjects)
@@ -290,9 +306,11 @@ function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
 
     -- fourth puzzle --
     local isBoxBeingDragged = checkIfObjIsDragged(box, selectedObjects, lasso_state, isMouseDragging)
+    local isSlideBeingDragged = checkIfObjIsDragged(kiddieSlide, selectedObjects, lasso_state, isMouseDragging)
 
     box:update(dt, isBoxBeingDragged, allObjects)
-    
+    kiddieSlide:update(dt, isSlideBeingDragged, allObjects)
+
     -- only update cat if not trapped
     if not catTrapped then
         cat:update(dt)
@@ -303,7 +321,8 @@ function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
        catTrapped = true
        cat.isChasing = false
 
-        box.y = WINDOWHEIGHT - 300 - box.height
+       -- keep box on the ground
+       box.y = WINDOWHEIGHT - 300 - box.height
 
        box.isMoving = true
        box.moveSpeed = 30
@@ -323,11 +342,30 @@ function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
         end
     end
 
+    -- check if dog can be rescued
+    if catTrapped and isSlideInPos() and not playerDog.isRescued then
+        playerDog.isRescued = true
+        -- move dog down slide
+        playerDog.x  = kiddieSlide.x + kiddieSlide.width/2 - playerDog.width/2
+        playerDog.y = WINDOWHEIGHT - 300 - playerDog.height
+    end
+
     if not catTrapped then
          -- block player from getting past cat
         if checkDist(player, cat, 60) then
             local catCenterX = cat.x + cat.width / 2
             player.x = catCenterX - 60 - player.width / 2
+        end
+
+        -- push slide away 
+        if checkDist(kiddieSlide, cat, 80) and not isSlideBeingDragged then
+            local catCenterX = cat.x + cat.width/2
+            local slideCenterX = kiddieSlide.x + kiddieSlide.width/2
+            if slideCenterX > catCenterX then 
+                kiddieSlide.x = catCenterX + 80
+            else
+                kiddieSlide.x = catCenterX - 80 - kiddieSlide.width
+            end
         end
     end
 end
@@ -398,16 +436,16 @@ function Level1.draw()
     love.graphics.setColor(treeBranch.color[1], treeBranch.color[2], treeBranch.color[3], 1)
     love.graphics.rectangle("fill", treeBranch.x, treeBranch.y, treeBranch.width, treeBranch.height)
 
-
-    -- draw dog
-    love.graphics.setColor(playerDog.color[1], playerDog.color[2], playerDog.color[3], 1)
-    love.graphics.rectangle("fill", playerDog.x, playerDog.y, playerDog.width, playerDog.height)
-
     if not catTrapped then
         cat:draw()
     end
     box:draw()
+    
     kiddieSlide:draw()
+    -- draw dog
+    love.graphics.setColor(playerDog.color[1], playerDog.color[2], playerDog.color[3], 1)
+    love.graphics.rectangle("fill", playerDog.x, playerDog.y, playerDog.width, playerDog.height)
+
 
 end
 
@@ -469,7 +507,7 @@ function Level1.getAllObjects()
 end
 
 function Level1.isPuzzleSolved()
-    return dogPoopCleaned and sprinklerCovered and ballsDistracted
+    return dogPoopCleaned and sprinklerCovered and ballsDistracted and playerDog.isRescued
 end
 
 function Level1.getProgressGateX()
