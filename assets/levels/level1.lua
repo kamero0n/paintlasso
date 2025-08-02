@@ -1,4 +1,5 @@
 require "assets/tools/bouncyBalls"
+require "assets/tools/npc"
 
 Level1 = {}
 
@@ -21,6 +22,8 @@ local sprinklerBlockRadius = 80
 -- third puzzle stuff
 local person, dog
 local bouncyBalls = {}
+local PROGRESS_GATE_X3 = 1600
+local ballsDistracted = false
 
 function Level1.init(world)
     -- create ground collider
@@ -63,6 +66,13 @@ function Level1.init(world)
     table.insert(bouncyBalls, BouncyBall(1250, WINDOWHEIGHT - 350, 15, {1, 0, 0}, world))
     table.insert(bouncyBalls, BouncyBall(1280, WINDOWHEIGHT - 380, 15, {0, 1, 0}, world))
     table.insert(bouncyBalls, BouncyBall(1310, WINDOWHEIGHT - 360, 15, {0, 0, 1}, world))
+
+    -- create person
+    person = NPC(1400, WINDOWHEIGHT - 380, 40, 80, {0.8, 0.6, 0.4}, 0) -- stationary for now...
+
+    -- create dog
+    dog = NPC(1350, WINDOWHEIGHT - 340, 50, 40, {0.6, 0.4, 0.2}, 100) -- moves a bit back and forth
+
 end
 
 local function checkDist(obj1, obj2, threshold)
@@ -99,7 +109,6 @@ end
 
 function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, allObjects)
     -- first puzzle --
-    -- update dog poop
     local isPoopBeingDragged = checkIfObjIsDragged(dogPoop, selectedObjects, lasso_state, isMouseDragging)
 
     -- check if poop has been picked up
@@ -128,6 +137,7 @@ function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
         end
     end
 
+    -- update the poop!
     if not dogPoopCleaned then
         dogPoop:update(dt, isPoopBeingDragged, allObjects)
     end
@@ -168,7 +178,7 @@ function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
         end
     end
 
-    -- chcheck water line collision and push player away
+    -- check water line collision and push player away
     if sprinkler.active and sprinkler.currentRadius > 0 and checkDist(player, sprinkler, sprinkler.currentRadius) then
         local sprinklerCenterX = sprinkler.x + sprinkler.width/2
         player.x = sprinklerCenterX - sprinkler.currentRadius - player.width / 2
@@ -184,6 +194,22 @@ function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
         local isBallBeingDragged = checkIfObjIsDragged(ball, selectedObjects, lasso_state, isMouseDragging)
         ball:update(dt, isBallBeingDragged, allObjects)
     end
+
+    person:update(dt)
+    dog:update(dt)
+
+    -- check if dog is distracted by balls
+    local dogDistracted, _ = dog:isNearBalls(bouncyBalls, 80)
+    if dogDistracted and not ballsDistracted then
+        ballsDistracted = true
+
+        -- move dog and person to the left
+        dog.x = dog.x - dog.speed * dt
+        person.x = person.x - person.speed * dt
+    end
+
+    -- block player if the dog is in their way
+
 end
 
 

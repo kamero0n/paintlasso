@@ -6,8 +6,10 @@ function BouncyBall:new(x, y, radius, color, world)
     BouncyBall.super.new(self, x, y, radius * 2, radius * 2, color, world)
 
     self.radius = radius
+    self.ogRadius = radius
     self.bounceDamping = 0.7 -- how much it loses on bounce
     self.minBounceVel = 50 -- min velocity to bounce
+    self.world = world
 
     -- override to be circle
     if self.body then
@@ -36,6 +38,34 @@ function BouncyBall:update(dt, isBeingDragged, allObjects)
             self.y = bodyY - self.radius
         end
     end
+end
+
+function BouncyBall:setSize(width, height)
+    -- calculate new radius based on width
+    local newRadius = width / 2
+    self.radius = newRadius
+
+    self.width = width
+    self.height = height
+
+    if self.body and self.world then
+        local bodyX, bodyY = self.body:getPosition()
+        local velX, velY = self.body:getLinearVelocity()
+        local angularVel = self.body:getAngularVelocity()
+
+        -- destroy old body
+        self.body:destroy()
+
+        -- new bod
+        self.body = self.world:newCircleCollider(bodyX, bodyY, newRadius)
+        self.body:setType("dynamic")
+        self.body:setRestitution(self.bounceDamping)
+
+        -- restore velocity
+        self.body:setLinearVelocity(velX, velY)
+        self.body:setAngularVelocity(angularVel)
+    end
+
 end
 
 function BouncyBall:draw()

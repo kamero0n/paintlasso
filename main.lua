@@ -256,10 +256,14 @@ function love.mousemoved(x, y, dx, dy, istouch)
 
             local bottomY = obj.y + obj.height
 
-            -- update
-            obj.width = newWidth
-            obj.height = newHeight
+            if obj.setSize then
+                obj:setSize(newWidth, newHeight)
+            else
+                -- default
+                obj.width = newWidth
+                obj.height = newHeight
 
+            end
             -- keep bottom anchored 
             obj.y = bottomY - newHeight
         end
