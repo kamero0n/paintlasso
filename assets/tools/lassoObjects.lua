@@ -25,6 +25,16 @@ function SelectableObject:new(x, y, width, height, color, world)
 end
 
 function SelectableObject:update(dt, isBeingDragged, allObjects)
+    -- skip physiscs if attached to smth
+    if self.attachedToGuitarMan or self.attachedToMouth then
+        if self.body then
+            self.body:setPosition(self.x + self.width/2 , self.y + self.height/2)
+        end
+
+        return
+    end
+
+
     if not self.isSelected and not isBeingDragged then
         -- check if above ground or other objects
         local landingY = self.groundY
