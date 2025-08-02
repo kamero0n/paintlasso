@@ -12,7 +12,7 @@ local scene_transition = {
 local current_level = 1
 
 function sceneManager.init()
-    current_level = 1
+    current_level = 2
     scene_transition.active = false
     scene_transition.fade_alpha = 0
 end
