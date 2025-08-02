@@ -27,6 +27,7 @@ local ballsDistracted = false
 
 -- fourth puzzle stuff
 local playerDog, cat, treeBase, treeBranch, box, kiddieSlide
+local catTrapped = false
 
 function Level1.init(world)
     -- create ground collider
@@ -104,13 +105,13 @@ function Level1.init(world)
     }
 
     -- catto
-    cat = NPC(1750, WINDOWHEIGHT - 340, 35, 30, {0.3, 0.3, 0.3}, 80)
+    cat = NPC(1750, WINDOWHEIGHT - 330, 35, 30, {0.3, 0.3, 0.3}, 80)
 
     -- create box
-    box = SelectableObject(1700, WINDOWHEIGHT - 350, 50, 50, {0.6, 0.4, 0.2}, world)
+    box = SelectableObject(1650, WINDOWHEIGHT - 350, 50, 50, {0.6, 0.4, 0.2}, world)
 
     -- create kiddieSlide
-    kiddieSlide = SelectableObject(1650, WINDOWHEIGHT - 370, 50, 70, {1, 0.2, 0.2}, world)
+    kiddieSlide = SelectableObject(1600, WINDOWHEIGHT - 370, 50, 70, {1, 0.2, 0.2}, world)
 end
 
 local function checkDist(obj1, obj2, threshold)
@@ -143,6 +144,21 @@ local function isLidOnSprinkler()
     local verticalDist = math.abs((trashCanLid.y + trashCanLid.height) - sprinkler.y)
 
     return horizDist <= sprinkler.width / 2 + 10 and verticalDist <= 5
+end
+
+local function isCatTrapped()
+    -- check if box is on top of cat
+    local catCenterX = cat.x + cat.width/2
+    local boxCenterX = box.x + box.width/2
+    local horizDist = math.abs(catCenterX - boxCenterX)
+
+    local horizontalOverlap = horizDist <= (cat.width + box.width)/2
+
+    local boxBottom = box.y + box.height
+    local catBottom = cat.y + cat.height
+    local atSameLevel = math.abs(boxBottom - catBottom) <= 10
+
+    return horizontalOverlap and atSameLevel
 end
 
 function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, allObjects)
@@ -271,6 +287,49 @@ function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
             player.x = dogCenterX - dogBlockRadius - player.width / 2
         end
     end
+
+    -- fourth puzzle --
+    local isBoxBeingDragged = checkIfObjIsDragged(box, selectedObjects, lasso_state, isMouseDragging)
+
+    box:update(dt, isBoxBeingDragged, allObjects)
+    
+    -- only update cat if not trapped
+    if not catTrapped then
+        cat:update(dt)
+    end
+
+
+    if not catTrapped and isCatTrapped() and not isBoxBeingDragged then
+       catTrapped = true
+       cat.isChasing = false
+
+        box.y = WINDOWHEIGHT - 300 - box.height
+
+       box.isMoving = true
+       box.moveSpeed = 30
+       box.moveDir = 1
+       box.startX = box.x
+       box.moveRange = 60
+    end
+
+    -- make box move if cat is trapped
+    if catTrapped and box.isMoving then
+        box.y = WINDOWHEIGHT - 300 - box.height
+
+        box.x = box.x + box.moveSpeed * box.moveDir * dt
+        if box.x > box.startX + box.moveRange or box.x < box.startX then
+            box.moveDir = box.moveDir * -1
+            box.x = math.max(box.startX, math.min(box.startX + box.moveRange, box.x))
+        end
+    end
+
+    if not catTrapped then
+         -- block player from getting past cat
+        if checkDist(player, cat, 60) then
+            local catCenterX = cat.x + cat.width / 2
+            player.x = catCenterX - 60 - player.width / 2
+        end
+    end
 end
 
 
@@ -344,7 +403,9 @@ function Level1.draw()
     love.graphics.setColor(playerDog.color[1], playerDog.color[2], playerDog.color[3], 1)
     love.graphics.rectangle("fill", playerDog.x, playerDog.y, playerDog.width, playerDog.height)
 
-    cat:draw()
+    if not catTrapped then
+        cat:draw()
+    end
     box:draw()
     kiddieSlide:draw()
 
@@ -363,6 +424,9 @@ function Level1.getObjects()
     for _, ball in ipairs(bouncyBalls) do
         table.insert(objects, ball)
     end
+
+    table.insert(objects, box)
+    table.insert(objects, kiddieSlide)
 
     return objects
 end
