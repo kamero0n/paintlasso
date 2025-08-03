@@ -8,7 +8,7 @@ Level1 = {}
 local WINDOWWIDTH, WINDOWHEIGHT = love.graphics.getDimensions()
 
 -- dialogue time <:)
-local dialogueShown = false
+local dialogueStates
 
 -- first puzzle stuff
 local dogPoop, trashCan, invisibleWall
@@ -34,7 +34,7 @@ local playerDog, cat, treeBase, treeBranch, box, kiddieSlide
 local catTrapped = false
 
 function Level1.init(world)
-    dialogueShown = false
+    dialogueStates = Utils.Dialogue.initStates(Utils.Dialogue.Level1)
 
     -- create ground collider
     ground = world:newRectangleCollider(0, WINDOWHEIGHT - 300, WINDOWWIDTH * 4, 300)
@@ -162,12 +162,8 @@ local function isSlideInPos()
 end
 
 function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, allObjects)
-    if not dialogueShown then
-        dialogueShown = true
-
-        dialogManager:show("Aw frick Chompy got out... ugh I guess I'll go outside... maybe I can put this wand to use")
-    end
-
+    Utils.Dialogue.showOnce(dialogueStates, "opening", Utils.Dialogue.Level1)
+    
     -- first puzzle --
     local isPoopBeingDragged = false
     if dogPoop then

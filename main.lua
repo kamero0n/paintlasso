@@ -1,4 +1,5 @@
 require "assets/tools/lassoObjects"
+require "assets/tools/utils"
 require "assets/levels/level1"
 require "assets/levels/level2"
 require "assets/levels/level3"
@@ -149,6 +150,15 @@ function love.mousepressed(x, y, button, istouch)
 
     if sceneManager.isTransitioning() then 
         return     
+    end
+
+    if button == 1 and dialogManager:getActiveDialog() ~= nil then
+        if dialogManager:getActiveDialog().done then
+            dialogManager:pop()
+        else
+            dialogManager:complete()
+        end
+        return
     end
 
     if button == 1  then
@@ -324,6 +334,16 @@ function love.mousereleased(x, y, button, istouch)
 end
 
 function love.keypressed(key)
+    if key == "return" and dialogManager:getActiveDialog() ~= nil then
+        if dialogManager:getActiveDialog().done then
+            dialogManager:pop()
+        else
+            dialogManager:complete()
+        end
+        return
+    end
+
+
     if sceneManager.getCurrentLevel() == 0 then
         sceneManager.startGame()
     end
