@@ -33,7 +33,7 @@ local groupOffsets = {} -- store offset for selected objects
 local allObjects = {}
 
 -- CAMERA
-local cam = gamera.new(0, 0, WINDOWWIDTH*4, WINDOWHEIGHT)
+local cam = gamera.new(0, 0, WINDOWWIDTH*3, WINDOWHEIGHT)
 
 
 function love.load()
