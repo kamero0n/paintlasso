@@ -89,6 +89,7 @@ function love.load()
     cursor.x, cursor.y =  love.mouse.getPosition()
 
     sceneManager.init()
+    sceneManager.startTransition(2)
 
     -- init dialove
     dialogManager = dialove.init({

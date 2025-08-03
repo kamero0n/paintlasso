@@ -163,7 +163,7 @@ local function isSlideInPos()
 end
 
 function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, allObjects)
-    Utils.Dialogue.showOnce(dialogueStates, "opening", Utils.Dialogue.Level1)
+    Utils.Dialogue.showOnce(dialogueStates, "opening", Utils.Dialogue.Level1, "You")
     
     -- first puzzle --
     local isPoopBeingDragged = false
@@ -198,7 +198,7 @@ function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
     end
 
     if not dogPoopCleaned and Utils.checkDist(dogPoop, player, poopThreshold) then 
-        Utils.Dialogue.showOnce(dialogueStates, "poopWarning", Utils.Dialogue.Level1)
+        Utils.Dialogue.showOnce(dialogueStates, "poopWarning", Utils.Dialogue.Level1, "You")
     else
         -- Reset dialogue state when player moves away
         dialogueStates["poopWarning"] = false
@@ -242,7 +242,7 @@ function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
 
     -- sprinkler warning
     if sprinkler.active and sprinkler.currentRadius > 0 and Utils.checkDist(player, sprinkler, sprinklerBlockRadius) then
-        Utils.Dialogue.showOnce(dialogueStates, "sprinklerWarning", Utils.Dialogue.Level1)
+        Utils.Dialogue.showOnce(dialogueStates, "sprinklerWarning", Utils.Dialogue.Level1, "You")
     else
         -- reset state
         dialogueStates["sprinklerWarning"] = false
@@ -296,7 +296,7 @@ function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
     end
 
     if not ballsDistracted and Utils.checkDist(player, dog, 60) then
-        Utils.Dialogue.showOnce(dialogueStates, "ownerWarning", Utils.Dialogue.Level1)
+        Utils.Dialogue.showOnce(dialogueStates, "ownerWarning", Utils.Dialogue.Level1, "You")
     else
         -- reset dialogue state when player moves away from dog
         dialogueStates["ownerWarning"] = false
@@ -340,7 +340,7 @@ function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
     end
 
     if not playerDog.isRescued and Utils.checkDist(player, playerDog, 400) then
-        Utils.Dialogue.showOnce(dialogueStates, "dogInTree", Utils.Dialogue.Level1)
+        Utils.Dialogue.showOnce(dialogueStates, "dogInTree", Utils.Dialogue.Level1, "You")
     end
 
     -- make box move if cat is trapped
@@ -382,7 +382,7 @@ function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
     end
 
     if dogPoopCleaned and sprinklerCovered and ballsDistracted and playerDog.isRescued and not endDialogue then
-        if Utils.Dialogue.showOnce(dialogueStates, "fin", Utils.Dialogue.Level1) then
+        if Utils.Dialogue.showOnce(dialogueStates, "fin", Utils.Dialogue.Level1, "You") then
             finalDialogueShown = true
         end
         endDialogue = true
