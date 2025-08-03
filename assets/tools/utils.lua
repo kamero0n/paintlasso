@@ -52,6 +52,28 @@ Utils.Dialogue.Level2 = {
     fin = "Finally, got the milk. I just wanna go home man... too many things happening today."
 }
 
+-- level 3 lines
+Utils.Dialogue.Level3 = {
+    opening = "Ok just gotta get home and I can chill. This wand has been saving me some trouble.",
+    solicitor = "MAAM! Do you have one minute to spare, I think you really need to hear about our cause.",
+    afterSolicitor = "(A solicitor... I gotta get away somehow.)",
+    solicitorSmushed = "...",
+    singingMan = "Hey! Come hear my song!!",
+    singingManResponse = "He won't let me leave...",
+    singingManFree = "La da deeeee dum dum pad da dummmmmmm...",
+    singingManWithSock = "Hrwuoshuoeuhofeour *continues to strum guitar*",
+    singingManWithBigGuitar = "I can still sing loud and clear!",
+    leaveSingingMan = "Ok, gotta go, bye bye!",
+    randomFrenchMan = "C'est une histoire vraie.",
+    randomFrenchManCont = "Je me trouvais en France et un homme s'est approché de moi et a commencé à me parler en français.",
+    randomFrenchManSPEAK = "Il était en état d'ébriété et semblait me trouver séduisante, car j'ai entendu...",
+    afterFrenchManLeaves = "Ok.",
+    creepTriesToHit = "Heyyyy cutie? Wanna let me get your number so you can get to know me?",
+    afterCreep = "*internal screaming* (I gotta get out of this somehow with this wand and the stuff nearby...)",
+    creepHitsOnMannequin = "Heeeyyyy baby! Didn't see you there...",
+    fin = "Man, what a long day. I think this wand should probably be returned, but holy it saved my life today."
+}
+
 function Utils.Dialogue.initStates(dialogueLines)
     local states = {}
     for key, _ in pairs(dialogueLines) do
