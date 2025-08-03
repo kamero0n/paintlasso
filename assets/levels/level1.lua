@@ -5,6 +5,9 @@ require "assets/tools/utils"
 Level1 = {}
 
 --SPRITES
+local dogPoopSprite = love.graphics.newImage("assets/art/sprites/level1Sprites/dogPoop.png")
+local trashCanSprite = love.graphics.newImage("assets/art/sprites/level1Sprites/trashcan.png")
+local trashCanLidSprite = love.graphics.newImage("assets/art/sprites/level1Sprites/trashCanLid.png")
 
 -- window stuff
 local WINDOWWIDTH, WINDOWHEIGHT = love.graphics.getDimensions()
@@ -361,6 +364,8 @@ function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
 end
 
 function Level1.draw()
+    love.graphics.setColor(0.2, 0.8, 0.2, 1)  -- Nice green color (RGB values between 0-1)
+    love.graphics.rectangle("fill", 0, 0, WINDOWWIDTH * 4, WINDOWHEIGHT)
     -- floor
     love.graphics.setColor(1, 1, 1, 1)
     love.graphics.rectangle("fill", 0, WINDOWHEIGHT - 300, WINDOWWIDTH * 4, 300)
@@ -377,8 +382,8 @@ function Level1.draw()
     end
 
     -- draw trash can
-    love.graphics.setColor(trashCan.color[1], trashCan.color[2], trashCan.color[3], 1)
-    love.graphics.rectangle("fill", trashCan.x, trashCan.y, trashCan.width, trashCan.height)
+    love.graphics.setColor(1, 1, 1, 1)
+    love.graphics.draw(trashCanSprite, trashCan.x, trashCan.y + 17, nil, 2, 2)
 
     -- this is invis wall (also for debug)
     if not dogPoopCleaned then
