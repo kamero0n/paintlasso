@@ -10,7 +10,6 @@ local WINDOWWIDTH, WINDOWHEIGHT = love.graphics.getDimensions()
 local solicitor, sign
 local signSmushedSolicitor = false
 local solicitorBlockRadius = 50
-local solOgHeight = 80
 local solminHeight = 10
 local smushSpeed = 150
 
@@ -34,6 +33,17 @@ local crazyManTriggered = false
 local crazyManMovingAway = false
 local crazyManMoveSpeed = 100
 
+-- LAST ONE!
+local weirdGuy, mannequin
+local basketballs = {}
+local box, mopHead
+local numBasketballs = 3
+local guyBlockRadius = 80
+local guyMoved = false
+local mannequinComplete = false
+local mannequinZones = {}
+
+
 function Level3.init(world)
     -- create ground collider
     ground = world:newRectangleCollider(0, WINDOWHEIGHT - 300, WINDOWWIDTH * 4, 300)
@@ -55,6 +65,18 @@ function Level3.init(world)
 
     --crazy man 
     crazyMan = NPC(1700, WINDOWHEIGHT - 380, 40, 80, {0.2, 0.1, 0.5}, 0)
+
+    -- add that weirdo
+    weirdGuy = NPC(2400, WINDOWHEIGHT - 380, 50, 80, {0.8, 0.1, 0.1}, 0)
+
+    -- mannequin
+    mannequin = {
+        x = 2000,
+        y = WINDOWHEIGHT - 450,
+        width = 40,
+        height = 150,
+        color = {0.9, 0.9, 0.8}
+    }
 
 end
 
@@ -211,6 +233,11 @@ function Level3.play(player, dt, selectedObj, lasso_state, isMouseDragging, allO
             player.x = crazyManCenterX - crazyManRadius - player.width / 2
         end
     end
+
+    -- fourth puzzle --
+    if crazyManDone then
+        weirdGuy:update(dt)
+    end
 end
 
 function Level3.draw()
@@ -240,6 +267,14 @@ function Level3.draw()
     if guitarManSolved and crazyMan.x > -crazyMan.width then
         crazyMan:draw()
     end
+
+    -- draw mannequin base
+    love.graphics.setColor(mannequin.color[1], mannequin.color[2], mannequin.color[3], 1)
+    love.graphics.rectangle("fill", mannequin.x, mannequin.y, mannequin.width, mannequin.height)
+
+    if crazyManDone and weirdGuy.x > -weirdGuy.width then
+        weirdGuy:draw()
+    end
 end
 
 function Level3.getObjects()
@@ -250,6 +285,10 @@ function Level3.getObjects()
     if signSmushedSolicitor then
         table.insert(objects, guitar)
         table.insert(objects, sock)
+    end
+
+    if crazyManDone then
+        
     end
 
     return objects
@@ -276,6 +315,11 @@ function Level3.getAllObjects()
     if guitarManSolved and crazyMan.x > -crazyMan.width then
         crazyMan.isSelectable = false
         table.insert(objects, crazyMan)
+    end
+
+    if crazyManDone and weirdGuy.x > -weirdGuy.width then
+        weirdGuy.isSelectable = false
+        table.insert(objects, weirdGuy)
     end
 
     return objects
