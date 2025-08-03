@@ -5,7 +5,7 @@ require "assets/tools/utils"
 Level1 = {}
 
 --SPRITES
-local backgroundLevel1Sprite = love.graphics.newImage("assets/art/sprites/level1Sprites/bacgkroundLevel1.png")
+local backgroundLevel1Sprite = love.graphics.newImage("assets/art/sprites/level1Sprites/backgroundLevel1.png")
 local floorSprite = love.graphics.newImage("assets/art/sprites/level1Sprites/level1Floor.png")
 local dogPoopSprite = love.graphics.newImage("assets/art/sprites/level1Sprites/dogPoop.png")
 local trashCanSprite = love.graphics.newImage("assets/art/sprites/level1Sprites/trashcan.png")
@@ -22,7 +22,7 @@ local yourDogSprite = love.graphics.newImage("assets/art/sprites/level1Sprites/d
 local WINDOWWIDTH, WINDOWHEIGHT = love.graphics.getDimensions()
 
 -- first puzzle stuff
-local dogPoop, trashCan, invisibleWall
+local dogPoop, trashCan
 local dogPoopCleaned = false
 local PROGRESS_GATE_X = 750
 local trashThreshold = 40
@@ -82,10 +82,6 @@ function Level1.init(world)
         active = true,
         currentRadius = sprinklerBlockRadius
     }
-
-    -- create invisible gate
-    invisibleWall = world:newRectangleCollider(PROGRESS_GATE_X, 0, 10, WINDOWHEIGHT - 300)
-    invisibleWall:setType('static')
 
     -- create some balls
     table.insert(bouncyBalls, BouncyBall(1015, WINDOWHEIGHT - 300, 15, {1, 0, 0}, world))
@@ -195,11 +191,6 @@ function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
 
         if verticalDist <= 5 and horizDist <= 30 then
             dogPoopCleaned = true
-            -- remove invisibleWall
-            if invisibleWall then
-                invisibleWall:destroy()
-                invisibleWall = nil
-            end
             -- remove poop
             if dogPoop.body then
                 dogPoop.body:destroy()
@@ -375,7 +366,7 @@ end
 function Level1.draw()
     --background
     love.graphics.setColor(1, 1, 1, 1)
-    love.grpahics.draw(backgroundLevel1Sprite, 0, 0)
+    love.graphics.draw(backgroundLevel1Sprite, 0, 0)
     -- floor
     love.graphics.setColor(1, 1, 1, 1)
     love.graphics.rectangle("fill", 0, WINDOWHEIGHT - 300, WINDOWWIDTH * 4, 300)
@@ -396,18 +387,12 @@ function Level1.draw()
     love.graphics.setColor(1, 1, 1, 1)
     love.graphics.draw(trashCanSprite, trashCan.x, trashCan.y + 17, nil, 2, 2)
 
-    -- this is invis wall (also for debug)
-    if not dogPoopCleaned then
-        love.graphics.setColor(1, 0, 0, 0.3)
-        love.graphics.rectangle("fill", PROGRESS_GATE_X, 0, 10, WINDOWHEIGHT - 300)
-    end
-
     -- draw trashCan lid
     trashCanLid:draw()
 
     -- draw sprinkler
     love.graphics.setColor(sprinkler.color[1], sprinkler.color[2], sprinkler.color[3])
-    love.graphics.rectangle("fill", sprinkler.x, sprinkler.y, sprinkler.width, sprinkler.height)
+    love.graphics.draw(sprinklerSprite, sprinkler.x, sprinkler.y, 0, sprinkler.width/sprinklerSprite:getWidth(), sprinkler.height/sprinklerSprite:getHeight())
 
     -- draw simple spray
     if sprinkler.active and sprinkler.currentRadius > 0.5 then
