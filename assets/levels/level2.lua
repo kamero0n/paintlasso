@@ -6,6 +6,11 @@ Level2 = {}
 -- window stuff
 local WINDOWWIDTH, WINDOWHEIGHT = love.graphics.getDimensions()
 
+-- dialog time
+local dialogueStates
+local endDialogue = false
+local finalDialogueShown = false
+
 -- first puzzle stuff
 local employee
 local shelfStacked = false
@@ -34,6 +39,8 @@ local correctDrinkType = 3
 local carriedDrink = nil
 
 function Level2.init(world)
+    dialogueStates = Utils.Dialogue.initStates(Utils.Dialogue.Level2)
+    
     -- create ground collider
     ground = world:newRectangleCollider(0, WINDOWHEIGHT - 300, WINDOWWIDTH * 4, 300)
     ground:setType('static')
@@ -295,14 +302,27 @@ local function checkDrinkGivenToFatGuy(drink)
 end
 
 function Level2.play(player, dt, selectedObjects, lasso_state, isMouseDragging, allObjects)
+    -- opening dialogue
+    Utils.Dialogue.showOnce(dialogueStates, "opening", Utils.Dialogue.Level2, "You")
+
     -- first puzzle --
     -- update employee
     employee:update(dt)
 
     -- block player with employee until items are stocked
     if not shelfStacked and Utils.checkDist(player, employee, employeeBlockRadius) then
+        if Utils.Dialogue.showOnce(dialogueStates, "employee", Utils.Dialogue.Level2, "Employee") then
+            --  flag to show the response after this dialogue finishes
+            dialogueStates["employeeResponsePending"] = true
+        end
+
         local employeeCenterX = employee.x + employee.width/2
         player.x = employeeCenterX - employeeBlockRadius - player.width / 2
+    end
+
+    if dialogueStates["employeeResponsePending"] and dialogManager:getActiveDialog() == nil then
+        dialogueStates["employeeResponsePending"] = false
+        dialogManager:show({text = Utils.Dialogue.Level2.afterEmployee, title = "You"})
     end
 
     itemsStocked = 0
@@ -348,6 +368,28 @@ function Level2.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
     if shelfStacked then
         child:update(dt)
 
+        -- Kid crying dialogue when near child or trying to leave
+        local nearChild = Utils.checkDist(player, child, childBlockRadius)
+        local tryingToLeave = not childFound and player.x + player.width > child.x + child.width + childBlockRadius
+        
+        if not childFound and (nearChild or tryingToLeave) then
+            if Utils.Dialogue.showOnce(dialogueStates, "kidCrying", Utils.Dialogue.Level2, "Kid") then
+                -- flag to show response after dialogue finishes
+                dialogueStates["kidResponsePending"] = true
+            end
+        end
+
+        if dialogueStates["kidResponsePending"] and dialogManager:getActiveDialog() == nil then
+            dialogueStates["kidResponsePending"] = false
+            dialogManager:show({text = Utils.Dialogue.Level2.afterKidCrying, title = "You"})
+        end
+
+        if not childFound and (nearChild or tryingToLeave) then 
+            Utils.Dialogue.showOnce(dialogueStates, "kidCrying", Utils.Dialogue.Level2, "Kid")
+        else
+            dialogueStates["kidCrying"] = false
+        end
+
         -- update cereal boxes
         for _, box in ipairs(cerealBoxes) do
             local isBoxBeingDragged = Utils.checkIfObjIsDragged(box, selectedObjects, lasso_state, isMouseDragging)
@@ -374,6 +416,11 @@ function Level2.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
             end
         end
 
+        -- mom dialogue when appear on screen
+        if momAppeared and mom.isVisible and mom.x < 1700  then
+            Utils.Dialogue.showOnce(dialogueStates, "momFindsKid", Utils.Dialogue.Level2, "Mom")
+        end
+
         -- mom walks in from the right
         if momAppeared and mom.isVisible then
             if mom.x > child.x + 100 then
@@ -385,6 +432,18 @@ function Level2.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
 
     -- third puzzle
     if childFound then
+        -- fat guy meet when close
+        if Utils.checkDist(player, fatGuy, 100) then
+            Utils.Dialogue.showOnce(dialogueStates, "meetFatGuy", Utils.Dialogue.Level2, "You")
+        end
+
+        if not fatGuyMoved and Utils.checkDist(player, fatGuy, fatGuyBlockRadius) then
+            Utils.Dialogue.showOnce(dialogueStates, "fatGuyClues", Utils.Dialogue.Level2, "Random Guy")
+        else
+            -- reset
+            dialogueStates["fatGuyClues"] = false
+        end
+
         -- update drinks
         for i, drink in ipairs(fridgeDrinks) do
             local isDrinkBeingDragged = Utils.checkIfObjIsDragged(drink, selectedObjects, lasso_state, isMouseDragging)
@@ -434,6 +493,13 @@ function Level2.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
         end
     end
     
+    -- final dialogue
+    if shelfStacked and childFound and momAppeared and fatGuyMoved and not endDialogue then
+        if Utils.Dialogue.showOnce(dialogueStates, "fin", Utils.Dialogue.Level2, "You") then
+            finalDialogueShown = true
+        end
+        endDialogue = true
+    end
    
 end
 
@@ -586,5 +652,8 @@ function Level2.getAllObjects()
 end
 
 function Level2.isLevelSolved()
-    return shelfStacked and childFound and momAppeared and fatGuyMoved
+    local allPuzzlesSolved = shelfStacked and childFound and momAppeared and fatGuyMoved
+    local dialogueComplete = finalDialogueShown and (dialogManager:getActiveDialog() == nil)
+    
+    return allPuzzlesSolved and dialogueComplete
 end

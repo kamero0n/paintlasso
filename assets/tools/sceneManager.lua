@@ -12,7 +12,7 @@ local scene_transition = {
 -- main menu state
 local menu_state = {
     title_alpha = 1.0,
-    pulse_speed = 2.0,
+    pulse_speed = 0.5,
     pulse_dir = -1
 }
 
@@ -130,7 +130,7 @@ function sceneManager.drawMenu(WINDOWWIDTH, WINDOWHEIGHT, font)
     love.graphics.setFont(smallerFont)
     local instruction = "press any key to start"
     local inst_width = font:getWidth(instruction)
-    love.graphics.print(instruction, WINDOWWIDTH / 2 - 350, WINDOWHEIGHT/2)
+    love.graphics.print(instruction, WINDOWWIDTH / 2 - 330, WINDOWHEIGHT/2)
 
     love.graphics.setColor(1, 1, 1, 1)
 end

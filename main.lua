@@ -1,11 +1,13 @@
 require "assets/tools/lassoObjects"
+require "assets/tools/utils"
 require "assets/levels/level1"
 require "assets/levels/level2"
 require "assets/levels/level3"
 anim8 = require 'assets/libraries/anim8'
 gamera = require 'assets/libraries/gamera'
 wf = require "assets/libraries/windfield"
-local sceneManager = require "assets/tools/sceneManager"
+sceneManager = require "assets/tools/sceneManager"
+dialove = require "assets/libraries/dialove"
 
 local WINDOWWIDTH, WINDOWHEIGHT = love.graphics.getDimensions()
 
@@ -18,7 +20,7 @@ local firstCorner, secondCorner
 -- scale start pos
 local scaleStartPos = {x = 0, y = 0}
 
--- offset values for selected object vs mouse
+-- offset values for selected object vs moucdse
 local offsetX, offsetY
 
 -- check the lasso tool state
@@ -87,11 +89,12 @@ function love.load()
     cursor.x, cursor.y =  love.mouse.getPosition()
 
     sceneManager.init()
+    sceneManager.startTransition(3)
 
-    -- for i, obj in ipairs(Level1.getAllObjects()) do
-    --     table.insert(allObjects, obj)
-    -- end
-
+    -- init dialove
+    dialogManager = dialove.init({
+        font = love.graphics.newFont("assets/libraries/dialove/fonts/proggy-tiny/ProggyTiny.ttf", 45) 
+    })
 end
 
 function updateCamera()
@@ -99,10 +102,16 @@ function updateCamera()
 end
 
 function love.update(dt)
+    print(WINDOWWIDTH)
+    print(WINDOWHEIGHT)
+
     -- world update
     if sceneManager.getCurrentLevel() > 0 then
         world:update(dt)
     end
+
+    -- diaalogue manager update
+    dialogManager:update(dt)
 
     -- update scene transitions
     local isTransitioning = sceneManager.update(dt, world, player, WINDOWWIDTH, WINDOWHEIGHT, camera, allObjects)
@@ -146,6 +155,7 @@ function love.mousepressed(x, y, button, istouch)
     if sceneManager.isTransitioning() then 
         return     
     end
+
 
     if button == 1  then
         --cursor animation play
@@ -320,7 +330,22 @@ function love.mousereleased(x, y, button, istouch)
 end
 
 function love.keypressed(key)
-    if sceneManager.getCurrentLevel() == 0 then
+     if dialogManager:getActiveDialog() ~= nil then
+        if key == "return" or key == "space" or key == "escape" then
+            local activeDialog = dialogManager:getActiveDialog()
+            if activeDialog.done then
+                -- Force clear the dialog
+                dialogManager.activeDialog = nil
+                dialogManager.activeDialogListMap = {}
+                dialogManager.activeDialogListIndex = 1
+            else
+                dialogManager:complete()
+            end
+            return
+        end
+    end
+
+    if sceneManager.getCurrentLevel() == 0 and not sceneManager.isTransitioning() then
         sceneManager.startGame()
     end
 end
@@ -329,7 +354,7 @@ function love.draw()
     world:draw()
 
     -- set target canvas
-    love.graphics.setCanvas(gameCanvas)
+    love.graphics.setCanvas{gameCanvas}
     love.graphics.clear(0, 0, 0, 1)
 
     --put everything you want drawn and gamera transforms it automatically
@@ -370,8 +395,10 @@ function love.draw()
     -- draw the canvas
     love.graphics.draw(gameCanvas, 0, 0);
 
-    -- draw scene transition overal
+    -- draw scene transition overall
     sceneManager.draw(WINDOWWIDTH, WINDOWHEIGHT)
+
+    dialogManager:draw()
 
     if cursor.animationPlay then
         cursor.animations.leftClick:draw(cursor.sparkle, cursor.x, cursor.y, nil, 2, 2)

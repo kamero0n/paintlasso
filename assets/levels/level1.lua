@@ -7,6 +7,11 @@ Level1 = {}
 -- window stuff
 local WINDOWWIDTH, WINDOWHEIGHT = love.graphics.getDimensions()
 
+-- dialogue time <:)
+local dialogueStates
+local endDialogue = false
+local finalDialogueShown = false
+
 -- first puzzle stuff
 local dogPoop, trashCan, invisibleWall
 local dogPoopCleaned = false
@@ -23,7 +28,6 @@ local sprinklerBlockRadius = 80
 -- third puzzle stuff
 local person, dog
 local bouncyBalls = {}
-local PROGRESS_GATE_X3 = 1600
 local ballsDistracted = false
 
 -- fourth puzzle stuff
@@ -31,6 +35,8 @@ local playerDog, cat, treeBase, treeBranch, box, kiddieSlide
 local catTrapped = false
 
 function Level1.init(world)
+    dialogueStates = Utils.Dialogue.initStates(Utils.Dialogue.Level1)
+
     -- create ground collider
     ground = world:newRectangleCollider(0, WINDOWHEIGHT - 300, WINDOWWIDTH * 4, 300)
     ground:setType('static')
@@ -157,6 +163,8 @@ local function isSlideInPos()
 end
 
 function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, allObjects)
+    Utils.Dialogue.showOnce(dialogueStates, "opening", Utils.Dialogue.Level1, "You")
+    
     -- first puzzle --
     local isPoopBeingDragged = false
     if dogPoop then
@@ -189,6 +197,13 @@ function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
         end
     end
 
+    if not dogPoopCleaned and Utils.checkDist(dogPoop, player, poopThreshold) then 
+        Utils.Dialogue.showOnce(dialogueStates, "poopWarning", Utils.Dialogue.Level1, "You")
+    else
+        -- Reset dialogue state when player moves away
+        dialogueStates["poopWarning"] = false
+    end
+
     -- update the poop!
     if not dogPoopCleaned and dogPoop then
         dogPoop:update(dt, isPoopBeingDragged, allObjects)
@@ -199,11 +214,6 @@ function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
         -- push back player
         local poopCenterX = dogPoop.x + dogPoop.width / 2
         player.x = poopCenterX - poopThreshold - player.width / 2
-    end
-
-    -- limit player movement if dog poop not solved
-    if not dogPoopCleaned and player.x > PROGRESS_GATE_X - player.width then
-        player.x = PROGRESS_GATE_X - player.width
     end
 
     -- second puzzle -- 
@@ -228,6 +238,14 @@ function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
             sprinkler.currentRadius = sprinklerBlockRadius
             sprinklerCovered = false
         end
+    end
+
+    -- sprinkler warning
+    if sprinkler.active and sprinkler.currentRadius > 0 and Utils.checkDist(player, sprinkler, sprinklerBlockRadius) then
+        Utils.Dialogue.showOnce(dialogueStates, "sprinklerWarning", Utils.Dialogue.Level1, "You")
+    else
+        -- reset state
+        dialogueStates["sprinklerWarning"] = false
     end
 
     -- check water line collision and push player away
@@ -277,6 +295,14 @@ function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
         person.x = person.x - 80 * dt
     end
 
+    if not ballsDistracted and Utils.checkDist(player, dog, 60) then
+        Utils.Dialogue.showOnce(dialogueStates, "ownerWarning", Utils.Dialogue.Level1, "You")
+    else
+        -- reset dialogue state when player moves away from dog
+        dialogueStates["ownerWarning"] = false
+    end
+
+
     -- block player if the dog is in their way
     if not ballsDistracted then
         local dogBlockRadius = 60
@@ -311,6 +337,10 @@ function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
        box.moveDir = 1
        box.startX = box.x
        box.moveRange = 60
+    end
+
+    if not playerDog.isRescued and Utils.checkDist(player, playerDog, 400) then
+        Utils.Dialogue.showOnce(dialogueStates, "dogInTree", Utils.Dialogue.Level1, "You")
     end
 
     -- make box move if cat is trapped
@@ -350,6 +380,13 @@ function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
             end
         end
     end
+
+    if dogPoopCleaned and sprinklerCovered and ballsDistracted and playerDog.isRescued and not endDialogue then
+        if Utils.Dialogue.showOnce(dialogueStates, "fin", Utils.Dialogue.Level1, "You") then
+            finalDialogueShown = true
+        end
+        endDialogue = true
+    end
 end
 
 function Level1.draw()
@@ -371,12 +408,6 @@ function Level1.draw()
     -- draw trash can
     love.graphics.setColor(trashCan.color[1], trashCan.color[2], trashCan.color[3], 1)
     love.graphics.rectangle("fill", trashCan.x, trashCan.y, trashCan.width, trashCan.height)
-
-    -- this is invis wall (also for debug)
-    if not dogPoopCleaned then
-        love.graphics.setColor(1, 0, 0, 0.3)
-        love.graphics.rectangle("fill", PROGRESS_GATE_X, 0, 10, WINDOWHEIGHT - 300)
-    end
 
     -- draw trashCan lid
     trashCanLid:draw()
@@ -484,15 +515,8 @@ function Level1.getAllObjects()
 end
 
 function Level1.isLevelSolved()
-    return dogPoopCleaned and sprinklerCovered and ballsDistracted and playerDog.isRescued
-end
-
-function Level1.getProgressGateX()
-    if not dogPoopCleaned then
-        return PROGRESS_GATE_X
-    elseif not sprinkerCovered then
-        return PROGRESS_GATE_X2
-    else
-        return math.huge
-    end
+    local allPuzzlesSolved = dogPoopCleaned and sprinklerCovered and ballsDistracted and playerDog.isRescued
+    local dialogueComplete = finalDialogueShown and (dialogManager:getActiveDialog() == nil)
+    
+    return allPuzzlesSolved and dialogueComplete
 end
