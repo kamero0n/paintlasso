@@ -12,7 +12,7 @@ local scene_transition = {
 -- main menu state
 local menu_state = {
     title_alpha = 1.0,
-    pulse_speed = 2.0,
+    pulse_speed = 0.5,
     pulse_dir = -1
 }
 
@@ -84,6 +84,9 @@ end
 function sceneManager.switchToLevel(levelNum, world, player, WINDOWWIDTH, WINDOWHEIGHT, camera, allObjects)
     current_level = levelNum
 
+    -- stop curr music before switching
+    stopLevelMusic()
+
     -- reset player pos for new level
     player.x = 200
     player.y = WINDOWHEIGHT - 350
@@ -100,16 +103,22 @@ function sceneManager.switchToLevel(levelNum, world, player, WINDOWWIDTH, WINDOW
         for i, obj in ipairs(Level3.getAllObjects()) do
             table.insert(allObjects, obj)
         end
+        playLevelMusic(3)
     elseif levelNum == 2 then
         Level2.init(world)
         for i, obj in ipairs(Level2.getAllObjects()) do
             table.insert(allObjects, obj)
         end
+        playLevelMusic(2)
     elseif levelNum == 1 then
         Level1.init(world)
         for i, obj in ipairs(Level1.getAllObjects()) do
             table.insert(allObjects, obj)
         end
+        playLevelMusic(1)
+    elseif levelNum == 0 then
+        -- back to menuuu
+        stopLevelMusic()
     end
 end
 
@@ -130,7 +139,7 @@ function sceneManager.drawMenu(WINDOWWIDTH, WINDOWHEIGHT, font)
     love.graphics.setFont(smallerFont)
     local instruction = "press any key to start"
     local inst_width = font:getWidth(instruction)
-    love.graphics.print(instruction, WINDOWWIDTH / 2 - 350, WINDOWHEIGHT/2)
+    love.graphics.print(instruction, WINDOWWIDTH / 2 - 330, WINDOWHEIGHT/2)
 
     love.graphics.setColor(1, 1, 1, 1)
 end
