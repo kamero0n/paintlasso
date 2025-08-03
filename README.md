@@ -1,4 +1,4 @@
-# paintlasso
+# piasso
 gmtk game jam 2025!
 
 made by ~ Cameron Gomez, Earl Tizon, Karl Tizon
