@@ -9,10 +9,17 @@ local scene_transition = {
     fade_speed = 2.0
 }
 
-local current_level = 1
+-- main menu state
+local menu_state = {
+    title_alpha = 1.0,
+    pulse_speed = 2.0,
+    pulse_dir = -1
+}
+
+local current_level = 0
 
 function sceneManager.init()
-    current_level = 1
+    current_level = 0
     scene_transition.active = false
     scene_transition.fade_alpha = 0
 end
@@ -30,6 +37,18 @@ function sceneManager.startTransition(nextLevel)
     scene_transition.fade_alpha = 0
     scene_transition.dir = "out"
     scene_transition.next_level = nextLevel
+end
+
+function sceneManager.updateMenu(dt)
+    -- simple effet
+    menu_state.title_alpha = menu_state.title_alpha + menu_state.pulse_speed * menu_state.pulse_dir * dt
+    if menu_state.title_alpha <= 0.3 then
+        menu_state.title_alpha = 0.3
+        menu_state.pulse_dir = 1
+    elseif menu_state.title_alpha >= 1.0 then
+        menu_state.title_alpha = 1.0
+        menu_state.pulse_dir = -1
+    end
 end
 
 function sceneManager.update(dt, world, player, WINDOWWIDTH, WINDOWHEIGHT, camera, allObjects)
@@ -94,6 +113,28 @@ function sceneManager.switchToLevel(levelNum, world, player, WINDOWWIDTH, WINDOW
     end
 end
 
+function sceneManager.drawMenu(WINDOWWIDTH, WINDOWHEIGHT, font)
+    love.graphics.setColor(0, 0, 0, 1)
+    love.graphics.rectangle("fill", 0, 0, WINDOWWIDTH, WINDOWHEIGHT)
+
+    love.graphics.setColor(1, 1, 1, 1)
+    love.graphics.setFont(font)
+
+    -- game title
+    local title = "PIASSO"
+    local title_width = font:getWidth(title)
+    love.graphics.print(title, WINDOWWIDTH / 2 - title_width/2, WINDOWHEIGHT/3)
+
+    -- pulsing "press any key"
+    love.graphics.setColor(1, 1, 1, menu_state.title_alpha)
+    love.graphics.setFont(smallerFont)
+    local instruction = "press any key to start"
+    local inst_width = font:getWidth(instruction)
+    love.graphics.print(instruction, WINDOWWIDTH / 2 - 350, WINDOWHEIGHT/2)
+
+    love.graphics.setColor(1, 1, 1, 1)
+end
+
 function sceneManager.draw(WINDOWWIDTH, WINDOWHEIGHT)
     if scene_transition.active and scene_transition.fade_alpha > 0 then
         love.graphics.setColor(0, 0, 0 ,scene_transition.fade_alpha)
@@ -127,6 +168,11 @@ function sceneManager.getCurrentLevelAllObjects()
 end
 
 function sceneManager.updateCurrentLevel(player, dt, selectedObjects, lasso_state, isMouseDragging, allObjects)
+    if current_level == 0 then
+        sceneManager.updateMenu(dt)
+        return
+    end
+
     if current_level == 1 then
         Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, allObjects)
 
@@ -146,19 +192,31 @@ function sceneManager.updateCurrentLevel(player, dt, selectedObjects, lasso_stat
 
         -- check if level 3 is complete
         if Level3.isLevelSolved() then
-            
+            sceneManager.startTransition(0)
         end
     end
 
 end
 
-function sceneManager.drawCurrentLevel()
+function sceneManager.drawCurrentLevel(WINDOWWIDTH, WINDOWHEIGHT, font)
+    if current_level == 0 then
+        sceneManager.drawMenu(WINDOWWIDTH, WINDOWHEIGHT, font)
+        return
+    end
+
+
     if current_level == 1 then
         Level1.draw()
     elseif current_level == 2 then
         Level2.draw()
     elseif current_level == 3 then
         Level3.draw()
+    end
+end
+
+function sceneManager.startGame()
+    if current_level == 0 then
+        sceneManager.startTransition(1)
     end
 end
 
