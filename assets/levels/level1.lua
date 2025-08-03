@@ -5,7 +5,7 @@ require "assets/tools/utils"
 Level1 = {}
 
 --SPRITES
---need background sprite
+local backgroundLevel1Sprite = love.graphics.newImage("assets/art/sprites/level1Sprites/bacgkroundLevel1.png")
 local floorSprite = love.graphics.newImage("assets/art/sprites/level1Sprites/level1Floor.png")
 local dogPoopSprite = love.graphics.newImage("assets/art/sprites/level1Sprites/dogPoop.png")
 local trashCanSprite = love.graphics.newImage("assets/art/sprites/level1Sprites/trashcan.png")
@@ -17,9 +17,6 @@ local kiddieSlideSprite = love.graphics.newImage("assets/art/sprites/level1Sprit
 local cardboardBoxSprite = love.graphics.newImage("assets/art/sprites/level1Sprites/cardboardBox.png")
 local catSprite = love.graphics.newImage("assets/art/sprites/level1Sprites/cat.png")
 local yourDogSprite = love.graphics.newImage("assets/art/sprites/level1Sprites/dog.png")
-
-
-
 
 -- window stuff
 local WINDOWWIDTH, WINDOWHEIGHT = love.graphics.getDimensions()
@@ -376,6 +373,9 @@ function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
 end
 
 function Level1.draw()
+    --background
+    love.graphics.setColor(1, 1, 1, 1)
+    love.grpahics.draw(backgroundLevel1Sprite, 0, 0)
     -- floor
     love.graphics.setColor(1, 1, 1, 1)
     love.graphics.rectangle("fill", 0, WINDOWHEIGHT - 300, WINDOWWIDTH * 4, 300)
