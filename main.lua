@@ -9,6 +9,9 @@ local sceneManager = require "assets/tools/sceneManager"
 
 local WINDOWWIDTH, WINDOWHEIGHT = love.graphics.getDimensions()
 
+--dogpopp test sprite
+dogPoopSprite = love.graphics.newImage("assets/art/sprites/level2Sprites/candy.png")
+
 -- check if mouse is being dragged
 local isMouseDragging = false
 

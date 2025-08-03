@@ -36,7 +36,7 @@ function Level1.init(world)
     ground:setType('static')
 
     -- create dog poop
-    dogPoop = SelectableObject(300, WINDOWHEIGHT - 330, 25, 15, {0.4, 0.2, 0.1}, world)
+    dogPoop = SelectableObject(300, WINDOWHEIGHT - 330, 25, 15, {0.4, 0.2, 0.1}, world, dogPoopSprite)
 
     -- create trash can 
     trashCan = {
