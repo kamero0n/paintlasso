@@ -8,6 +8,7 @@ Level1 = {}
 local dogPoopSprite = love.graphics.newImage("assets/art/sprites/level1Sprites/dogPoop.png")
 local trashCanSprite = love.graphics.newImage("assets/art/sprites/level1Sprites/trashcan.png")
 local trashCanLidSprite = love.graphics.newImage("assets/art/sprites/level1Sprites/trashCanLid.png")
+local floorSprite = love.graphics.newImage("assets/art/sprites/level1Sprites/floor.png")
 
 -- window stuff
 local WINDOWWIDTH, WINDOWHEIGHT = love.graphics.getDimensions()
@@ -364,11 +365,10 @@ function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
 end
 
 function Level1.draw()
-    love.graphics.setColor(0.2, 0.8, 0.2, 1)  -- Nice green color (RGB values between 0-1)
-    love.graphics.rectangle("fill", 0, 0, WINDOWWIDTH * 4, WINDOWHEIGHT)
     -- floor
     love.graphics.setColor(1, 1, 1, 1)
     love.graphics.rectangle("fill", 0, WINDOWHEIGHT - 300, WINDOWWIDTH * 4, 300)
+    love.graphics.draw(floorSprite, 0, WINDOWHEIGHT - 300)
 
     -- draw objects
     if not dogPoopCleaned then
