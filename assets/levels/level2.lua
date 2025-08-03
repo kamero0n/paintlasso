@@ -58,9 +58,9 @@ function Level2.init(world)
     employee = NPC(400, WINDOWHEIGHT - 380, 40, 80, {0.2, 0.4, 0.8}, 40)
 
     -- items to stock
-    table.insert(items, SelectableObject(150, WINDOWHEIGHT - 330, 30, 30, {0.8, 0.2, 0.2}, world))
-    table.insert(items, SelectableObject(200, WINDOWHEIGHT - 335, 25, 35, {0.2, 0.8, 0.2}, world))
-    table.insert(items, SelectableObject(250, WINDOWHEIGHT - 340, 35, 40, {0.2, 0.2, 0.8}, world))
+    table.insert(items, SelectableObject(150, WINDOWHEIGHT - 330, 30, 30, {1, 1, 1}, world, cerealSprite))
+    table.insert(items, SelectableObject(200, WINDOWHEIGHT - 335, 25, 35, {1, 1, 1}, world, candySprite))
+    table.insert(items, SelectableObject(250, WINDOWHEIGHT - 340, 35, 40, {1, 1, 1}, world, chipsSprite))
 
     -- zone for item placement
     table.insert(targetZones, {
@@ -111,8 +111,9 @@ function Level2.init(world)
             WINDOWHEIGHT - 460,
             50,
             30,
-            {0.9, 0.7, 0.3},
-            world
+            {1, 1, 1},
+            world,
+            mountainDewSprite
         )
         box.isCerealBox = true
         table.insert(cerealBoxes, box)

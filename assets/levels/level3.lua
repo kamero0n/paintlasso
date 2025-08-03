@@ -69,13 +69,13 @@ function Level3.init(world)
     solicitor.isSmushing = false
     
     -- sign 
-    sign = SelectableObject(50, WINDOWHEIGHT - 480, 150, 50, {0.8, 0.2, 0.8}, world)
+    sign = SelectableObject(50, WINDOWHEIGHT - 480, 150, 50, {1, 1, 1}, world, marketSignSprite)
 
     -- guitarMan
-    guitarMan = NPC(1000, WINDOWHEIGHT - 400, 40, 100, {0.6, 0.1, 0.9}, 0)
-    guitar = SelectableObject(guitarMan.x - 40, guitarMan.y + 50, 80, 20, {0.8, 0.4, 0.1}, world)
+    guitarMan = NPC(1000, WINDOWHEIGHT - 400, 40, 100, {1, 1, 1}, 0)
+    guitar = SelectableObject(guitarMan.x - 40, guitarMan.y + 50, 80, 20, {1, 1, 1}, world, guitarSprite)
     guitar.attachedToGuitarMan = true
-    sock = SelectableObject(1150, WINDOWHEIGHT - 330, 25, 15, {0.3, 0.2, 0.1}, world)
+    sock = SelectableObject(1150, WINDOWHEIGHT - 330, 25, 15, {1, 1, 1}, world, sockSprite)
 
     --crazy man 
     crazyMan = NPC(1700, WINDOWHEIGHT - 380, 40, 80, {0.2, 0.1, 0.5}, 0)
