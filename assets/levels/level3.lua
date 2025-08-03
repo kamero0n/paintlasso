@@ -6,6 +6,15 @@ Level3 = {}
 --SPRITES
 --need background
 --need floor
+local marketSignSprite = love.graphics.newImage('assets/sprites/level3Sprites/marketSign.png')
+--need solicitor sprite
+local guitarSprite = love.graphics.newImage('assets/sprites/level3Sprites/guitar.png')
+local sockSprite = love.graphics.newImage('assets/sprites/level3Sprites/sock.png')
+--need guitar player sprite
+--need crazy guy on street sprite
+--need mannequin sprite
+local basketballSprite = love.graphics.newImage('assets/sprites/level3Sprites/basketball.png')
+--need rizzful guy sprite
 
 
 -- window stuff
