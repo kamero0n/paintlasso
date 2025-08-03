@@ -12,7 +12,7 @@ local scene_transition = {
 local current_level = 1
 
 function sceneManager.init()
-    current_level = 3
+    current_level = 1
     scene_transition.active = false
     scene_transition.fade_alpha = 0
 end
@@ -143,6 +143,11 @@ function sceneManager.updateCurrentLevel(player, dt, selectedObjects, lasso_stat
         end
     elseif current_level == 3 then
         Level3.play(player, dt, selectedObjects, lasso_state, isMouseDragging, allObjects)
+
+        -- check if level 3 is complete
+        if Level3.isLevelSolved() then
+            
+        end
     end
 
 end
