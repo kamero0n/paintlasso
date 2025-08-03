@@ -27,6 +27,7 @@ function NPC:update(dt)
         return
     end
 
+
     if self.moveRange > 0 then
         self.moveTimer = self.moveTimer + dt
 

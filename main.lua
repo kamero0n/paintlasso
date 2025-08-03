@@ -1,14 +1,11 @@
 require "assets/tools/lassoObjects"
-require "assets/tools/utils"
 require "assets/levels/level1"
 require "assets/levels/level2"
 require "assets/levels/level3"
 anim8 = require 'assets/libraries/anim8'
 gamera = require 'assets/libraries/gamera'
 wf = require "assets/libraries/windfield"
-sceneManager = require "assets/tools/sceneManager"
-dialove = require "assets/libraries/dialove"
-require "assets/libraries/tesound"
+local sceneManager = require "assets/tools/sceneManager"
 
 local WINDOWWIDTH, WINDOWHEIGHT = love.graphics.getDimensions()
 
@@ -21,7 +18,7 @@ local firstCorner, secondCorner
 -- scale start pos
 local scaleStartPos = {x = 0, y = 0}
 
--- offset values for selected object vs moucdse
+-- offset values for selected object vs mouse
 local offsetX, offsetY
 
 -- check the lasso tool state
@@ -31,10 +28,6 @@ local lasso_state = "selecting"
 local selectedObjects = {} -- store selected objects
 local groupOffsets = {} -- store offset for selected objects
 local allObjects = {}
-
--- audio stuff
-local currentMusicTrack = nil
-local musicVol = 0.5
 
 -- CAMERA
 local cam = gamera.new(0, 0, WINDOWWIDTH*3.2, WINDOWHEIGHT)
@@ -94,54 +87,15 @@ function love.load()
     cursor.x, cursor.y =  love.mouse.getPosition()
 
     sceneManager.init()
-    sceneManager.startTransition(0)
 
-    -- init dialove
-    dialogManager = dialove.init({
-        font = love.graphics.newFont("assets/libraries/dialove/fonts/proggy-tiny/ProggyTiny.ttf", 45) 
-    })
+    -- for i, obj in ipairs(Level1.getAllObjects()) do
+    --     table.insert(allObjects, obj)
+    -- end
 
-    -- AUDIO
-    level1Track = "assets/audio/music/Level1.ogg"
-    level2Track = "assets/audio/music/Level2.ogg"
-    level3Track = "assets/audio/music/Level3.ogg"
 end
 
 function updateCamera()
    cam:setPosition(player.x, player.y)
-end
-
-function playLevelMusic(levelNum)
-    if currentMusicTrack then
-        TEsound.stop("music")
-    end
-
-    local trackToPlay = nil
-
-    if levelNum == 1 then
-        trackToPlay = level1Track
-    elseif levelNum == 2 then
-        trackToPlay = level2Track
-    elseif levelNum == 3 then
-        trackToPlay = level3Track
-    end
-
-    if trackToPlay then
-        -- play track looping
-        currentMusicTrack = TEsound.playLooping(trackToPlay, "stream", "music", nil, musicVol)
-    end
-end
-
-function stopLevelMusic()
-    if currentMusicTrack then
-        TEsound.stop("music")
-        currentMusicTrack = nil
-    end
-end
-
-function setMusicVolume(vol)
-    musicVol = vol
-    TEsound.volume("music", musicVol)
 end
 
 function love.update(dt)
@@ -149,9 +103,6 @@ function love.update(dt)
     if sceneManager.getCurrentLevel() > 0 then
         world:update(dt)
     end
-
-    -- diaalogue manager update
-    dialogManager:update(dt)
 
     -- update scene transitions
     local isTransitioning = sceneManager.update(dt, world, player, WINDOWWIDTH, WINDOWHEIGHT, camera, allObjects)
@@ -187,6 +138,14 @@ function love.update(dt)
     for i, obj in ipairs(sceneManager.getCurrentLevelAllObjects()) do
         table.insert(allObjects, obj)
     end
+
+    if player.x < 0 then
+        player.x = 0
+    end
+
+    if player.x > WINDOWWIDTH * 3.2 then
+        player.x = WINDOWWIDTH * 3.2
+    end
 end
 
 function love.mousepressed(x, y, button, istouch)
@@ -195,7 +154,6 @@ function love.mousepressed(x, y, button, istouch)
     if sceneManager.isTransitioning() then 
         return     
     end
-
 
     if button == 1  then
         --cursor animation play
@@ -370,22 +328,7 @@ function love.mousereleased(x, y, button, istouch)
 end
 
 function love.keypressed(key)
-     if dialogManager:getActiveDialog() ~= nil then
-        if key == "return" or key == "space" or key == "escape" then
-            local activeDialog = dialogManager:getActiveDialog()
-            if activeDialog.done then
-                -- Force clear the dialog
-                dialogManager.activeDialog = nil
-                dialogManager.activeDialogListMap = {}
-                dialogManager.activeDialogListIndex = 1
-            else
-                dialogManager:complete()
-            end
-            return
-        end
-    end
-
-    if sceneManager.getCurrentLevel() == 0 and not sceneManager.isTransitioning() then
+    if sceneManager.getCurrentLevel() == 0 then
         sceneManager.startGame()
     end
 end
@@ -394,7 +337,7 @@ function love.draw()
     world:draw()
 
     -- set target canvas
-    love.graphics.setCanvas{gameCanvas}
+    love.graphics.setCanvas(gameCanvas)
     love.graphics.clear(0, 0, 0, 1)
 
     --put everything you want drawn and gamera transforms it automatically
@@ -435,10 +378,8 @@ function love.draw()
     -- draw the canvas
     love.graphics.draw(gameCanvas, 0, 0);
 
-    -- draw scene transition overall
+    -- draw scene transition overal
     sceneManager.draw(WINDOWWIDTH, WINDOWHEIGHT)
-
-    dialogManager:draw()
 
     if cursor.animationPlay then
         cursor.animations.leftClick:draw(cursor.sparkle, cursor.x, cursor.y, nil, 2, 2)

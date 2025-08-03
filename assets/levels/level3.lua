@@ -20,11 +20,6 @@ local basketballSprite = love.graphics.newImage('assets/art/sprites/level3Sprite
 -- window stuff
 local WINDOWWIDTH, WINDOWHEIGHT = love.graphics.getDimensions()
 
--- dialogue stuffs
-local dialogueStates
-local endDialogue = false
-local finalDialogueShown = false
-
 -- first puzzle stuff
 local solicitor, sign
 local signSmushedSolicitor = false
@@ -60,13 +55,10 @@ local numBasketballs = 3
 local guyBlockRadius = 80
 local guyMoved = false
 local mannequinComplete = false
-local weirdGuyPuzzleDone = false
 local mannequinZones = {}
 
 
 function Level3.init(world)
-    dialogueStates = Utils.Dialogue.initStates(Utils.Dialogue.Level3)
-
     -- create ground collider
     ground = world:newRectangleCollider(0, WINDOWHEIGHT - 300, WINDOWWIDTH * 4, 300)
     ground:setType('static')
@@ -279,26 +271,8 @@ local function updateMannequinAssembly()
 end
 
 function Level3.play(player, dt, selectedObj, lasso_state, isMouseDragging, allObjects)
-    Utils.Dialogue.showOnce(dialogueStates, "opening", Utils.Dialogue.Level3, "You")
-    
     -- first puzzle --
     solicitor:update(dt)
-
-
-    -- block player if solicitor not gone
-    if not signSmushedSolicitor and Utils.checkDist(player, solicitor, solicitorBlockRadius) then
-        if Utils.Dialogue.showOnce(dialogueStates, "solicitor", Utils.Dialogue.Level3, "Solicitor") then
-            dialogueStates["solicitorResponsePending"] = true
-        end
-
-        local solicitorCenterX = solicitor.x + solicitor.width / 2
-        player.x = solicitorCenterX - solicitorBlockRadius - player.width / 2
-    end
-
-    if dialogueStates["solicitorResponsePending"] and dialogManager:getActiveDialog() == nil then
-        dialogueStates["solicitorResponsePending"] = false
-        dialogManager:show({text = Utils.Dialogue.Level3.afterSolicitor, title = "You"})
-    end
 
     -- update sign
     local isSignBeingDragged = Utils.checkIfObjIsDragged(sign, selectedObj, lasso_state, isMouseDragging, allObjects)
@@ -311,29 +285,17 @@ function Level3.play(player, dt, selectedObj, lasso_state, isMouseDragging, allO
         end
     end
 
-    if signSmushedSolicitor and not dialogueStates["solicitorSmushPlayed"] then
-        Utils.Dialogue.showOnce(dialogueStates, "solicitorSmushed", Utils.Dialogue.Level3, "You")
-        dialogueStates["solicitorSmushPlayed"] = true
-    end
-
     updateSolicitorSmushing(dt)
+
+    -- block player if solicitor not gone
+    if not signSmushedSolicitor and Utils.checkDist(player, solicitor, solicitorBlockRadius) then
+        local solicitorCenterX = solicitor.x + solicitor.width / 2
+        player.x = solicitorCenterX - solicitorBlockRadius - player.width / 2
+    end
 
     -- second puzzle --
     if signSmushedSolicitor then
         guitarMan:update(dt)
-
-        if Utils.checkDist(player, guitarMan, guitarManBlockRadius) and not dialogueStates["metGuitarMan"] then
-            if Utils.Dialogue.showOnce(dialogueStates, "singingMan", Utils.Dialogue.Level3, "Guitar Man") then
-                dialogueStates["singingManResponsePending"] = true
-                dialogueStates["metGuitarMan"] = true
-            end
-        end
-
-        -- Show response after guitar man dialogue
-        if dialogueStates["singingManResponsePending"] and dialogManager:getActiveDialog() == nil then
-            dialogueStates["singingManResponsePending"] = false
-            dialogManager:show({text = Utils.Dialogue.Level3.singingManResponse, title = "You"})
-        end
 
         -- update second puzzle objects
         local isSockBeingDragged = Utils.checkIfObjIsDragged(sock, selectedObj, lasso_state, isMouseDragging)
@@ -360,28 +322,9 @@ function Level3.play(player, dt, selectedObj, lasso_state, isMouseDragging, allO
 
         -- block player movement completely
         if not guitarManSolved and Utils.checkDist(player, guitarMan, guitarManBlockRadius) then
-            if guitarManSilenced and guitarMadeBig then
-                Utils.Dialogue.showOnce(dialogueStates, "leaveSingingMan", Utils.Dialogue.Level3, "You")
-            elseif guitarManSilenced then
-                Utils.Dialogue.showOnce(dialogueStates, "singingManWithSock", Utils.Dialogue.Level3, "Guitar Man")
-            elseif guitarMadeBig then
-                Utils.Dialogue.showOnce(dialogueStates, "singingManWithBigGuitar", Utils.Dialogue.Level3, "Guitar Man")
-            else
-                Utils.Dialogue.showOnce(dialogueStates, "singingManFree", Utils.Dialogue.Level3, "Guitar Man")
-            end
-
-            -- only block the player if they haven't solved both parts of the puzzle
-            if not (guitarManSilenced and guitarMadeBig) then
-                local guitarManCenterX = guitarMan.x + guitarMan.width / 2
-                player.x = guitarManCenterX - guitarManBlockRadius - player.width / 2
-            end
-        else
-            dialogueStates["singingManFree"] = false
-            dialogueStates["singingManWithSock"] = false
-            dialogueStates["singingManWithBigGuitar"] = false
+            local guitarManCenterX = guitarMan.x + guitarMan.width / 2
+            player.x = guitarManCenterX - guitarManBlockRadius - player.width / 2
         end
-
-
     end
 
     -- third event --
@@ -396,32 +339,11 @@ function Level3.play(player, dt, selectedObj, lasso_state, isMouseDragging, allO
             local crazyManCenterX = crazyMan.x + crazyMan.width/2
             player.x = crazyManCenterX - crazyManRadius - player.width / 2
         end
-
-        if crazyManDone and not dialogueStates["afterFrenchPlayed"] then
-            Utils.Dialogue.showOnce(dialogueStates, "afterFrenchManLeaves", Utils.Dialogue.Level3, "You")
-            dialogueStates["afterFrenchPlayed"] = true
-        end
     end
 
     -- fourth puzzle --
     if crazyManDone then
         weirdGuy:update(dt)
-
-        if not guyMoved and Utils.checkDist(player, weirdGuy, guyBlockRadius) then
-            if Utils.Dialogue.showOnce(dialogueStates, "creepTriesToHit", Utils.Dialogue.Level3, "Creep") then
-                dialogueStates["creepResponsePending"] = true
-            end
-
-            local guyCenterX = weirdGuy.x + weirdGuy.width / 2
-            player.x = guyCenterX - guyBlockRadius - player.width / 2
-        else
-            dialogueStates["creepTriesToHit"] = false
-        end
-
-        if dialogueStates["creepResponsePending"] and dialogManager:getActiveDialog() == nil then
-            dialogueStates["creepResponsePending"] = false
-            dialogManager:show({text = Utils.Dialogue.Level3.afterCreep, title = "You"})
-        end
 
         if guyMoved then
             if weirdGuy.x > weirdGuy.targetX then
@@ -430,7 +352,6 @@ function Level3.play(player, dt, selectedObj, lasso_state, isMouseDragging, allO
                 if weirdGuy.x <= weirdGuy.targetX then
                     weirdGuy.x = weirdGuy.targetX
                     weirdGuy.isMoving = false
-                    weirdGuyPuzzleDone = true
                 end
             end
         end
@@ -500,20 +421,13 @@ function Level3.play(player, dt, selectedObj, lasso_state, isMouseDragging, allO
             end
         end
 
-        if  weirdGuy.isMoving and not dialogueStates["creepMannequinPlayed"] then
-            Utils.Dialogue.showOnce(dialogueStates, "creepHitsOnMannequin", Utils.Dialogue.Level3, "Creep")
-            dialogueStates["creepMannequinPlayed"] = true
-        end
-
         updateMannequinAssembly()
-    end
 
-    -- final dialogue
-    if signSmushedSolicitor and guitarManSolved and crazyManDone and weirdGuyPuzzleDone then
-        if Utils.Dialogue.showOnce(dialogueStates, "fin", Utils.Dialogue.Level3, "You") then
-            finalDialogueShown = true
+        -- block player movement
+        if not guyMoved and Utils.checkDist(player, weirdGuy, guyBlockRadius) then
+            local guyCenterX = weirdGuy.x + weirdGuy.width / 2
+            player.x = guyCenterX - guyBlockRadius - player.width / 2
         end
-        endDialogue = true
     end
 end
 
@@ -639,8 +553,5 @@ function Level3.getAllObjects()
 end
 
 function Level3.isLevelSolved()
-    local allPuzzlesSolved = signSmushedSolicitor and guitarManSolved and crazyManDone and weirdGuyPuzzleDone
-    local dialogueComplete = finalDialogueShown and (dialogManager:getActiveDialog() == nil)
-    
-    return allPuzzlesSolved and dialogueComplete
+    return signSmushedSolicitor and guitarManSolved and crazyManDone and guyMoved
 end
