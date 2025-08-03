@@ -334,13 +334,19 @@ function love.mousereleased(x, y, button, istouch)
 end
 
 function love.keypressed(key)
-    if key == "return" and dialogManager:getActiveDialog() ~= nil then
-        if dialogManager:getActiveDialog().done then
-            dialogManager:pop()
-        else
-            dialogManager:complete()
+     if dialogManager:getActiveDialog() ~= nil then
+        if key == "return" or key == "space" or key == "escape" then
+            local activeDialog = dialogManager:getActiveDialog()
+            if activeDialog.done then
+                -- Force clear the dialog
+                dialogManager.activeDialog = nil
+                dialogManager.activeDialogListMap = {}
+                dialogManager.activeDialogListIndex = 1
+            else
+                dialogManager:complete()
+            end
+            return
         end
-        return
     end
 
 

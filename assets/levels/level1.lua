@@ -196,6 +196,10 @@ function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
         end
     end
 
+    if not dogPoopCleaned and Utils.checkDist(dogPoop, player, poopThreshold) then 
+        Utils.Dialogue.showOnce(dialogueStates, "poopWarning", Utils.Dialogue.Level1, dialogManager)
+    end
+
     -- update the poop!
     if not dogPoopCleaned and dogPoop then
         dogPoop:update(dt, isPoopBeingDragged, allObjects)
