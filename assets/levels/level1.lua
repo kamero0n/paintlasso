@@ -197,7 +197,10 @@ function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
     end
 
     if not dogPoopCleaned and Utils.checkDist(dogPoop, player, poopThreshold) then 
-        Utils.Dialogue.showOnce(dialogueStates, "poopWarning", Utils.Dialogue.Level1, dialogManager)
+        Utils.Dialogue.showOnce(dialogueStates, "poopWarning", Utils.Dialogue.Level1)
+    else
+        -- Reset dialogue state when player moves away
+        dialogueStates["poopWarning"] = false
     end
 
     -- update the poop!
