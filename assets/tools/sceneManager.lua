@@ -84,6 +84,9 @@ end
 function sceneManager.switchToLevel(levelNum, world, player, WINDOWWIDTH, WINDOWHEIGHT, camera, allObjects)
     current_level = levelNum
 
+    -- stop curr music before switching
+    stopLevelMusic()
+
     -- reset player pos for new level
     player.x = 200
     player.y = WINDOWHEIGHT - 350
@@ -100,16 +103,22 @@ function sceneManager.switchToLevel(levelNum, world, player, WINDOWWIDTH, WINDOW
         for i, obj in ipairs(Level3.getAllObjects()) do
             table.insert(allObjects, obj)
         end
+        playLevelMusic(3)
     elseif levelNum == 2 then
         Level2.init(world)
         for i, obj in ipairs(Level2.getAllObjects()) do
             table.insert(allObjects, obj)
         end
+        playLevelMusic(2)
     elseif levelNum == 1 then
         Level1.init(world)
         for i, obj in ipairs(Level1.getAllObjects()) do
             table.insert(allObjects, obj)
         end
+        playLevelMusic(1)
+    elseif levelNum == 0 then
+        -- back to menuuu
+        stopLevelMusic()
     end
 end
 

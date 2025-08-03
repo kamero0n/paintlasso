@@ -8,6 +8,7 @@ gamera = require 'assets/libraries/gamera'
 wf = require "assets/libraries/windfield"
 sceneManager = require "assets/tools/sceneManager"
 dialove = require "assets/libraries/dialove"
+require "assets/libraries/tesound"
 
 local WINDOWWIDTH, WINDOWHEIGHT = love.graphics.getDimensions()
 
@@ -30,6 +31,10 @@ local lasso_state = "selecting"
 local selectedObjects = {} -- store selected objects
 local groupOffsets = {} -- store offset for selected objects
 local allObjects = {}
+
+-- audio stuff
+local currentMusicTrack = nil
+local musicVol = 0.5
 
 -- CAMERA
 local cam = gamera.new(0, 0, WINDOWWIDTH*4, WINDOWHEIGHT)
@@ -95,10 +100,48 @@ function love.load()
     dialogManager = dialove.init({
         font = love.graphics.newFont("assets/libraries/dialove/fonts/proggy-tiny/ProggyTiny.ttf", 45) 
     })
+
+    -- AUDIO
+    level1Track = "assets/audio/music/Level1.ogg"
+    level2Track = "assets/audio/music/Level2.ogg"
+    level3Track = "assets/audio/music/Level3.ogg"
 end
 
 function updateCamera()
    cam:setPosition(player.x, player.y)
+end
+
+function playLevelMusic(levelNum)
+    if currentMusicTrack then
+        TEsound.stop("music")
+    end
+
+    local trackToPlay = nil
+
+    if levelNum == 1 then
+        trackToPlay = level1Track
+    elseif levelNum == 2 then
+        trackToPlay = level2Track
+    elseif levelNum == 3 then
+        trackToPlay = level3Track
+    end
+
+    if trackToPlay then
+        -- play track looping
+        currentMusicTrack = TEsound.playLooping(trackToPlay, "stream", "music", nil, musicVol)
+    end
+end
+
+function stopLevelMusic()
+    if currentMusicTrack then
+        TEsound.stop("music")
+        currentMusicTrack = nil
+    end
+end
+
+function setMusicVolume(vol)
+    musicVol = vol
+    TEsound.volume("music", musicVol)
 end
 
 function love.update(dt)
@@ -144,6 +187,8 @@ function love.update(dt)
     for i, obj in ipairs(sceneManager.getCurrentLevelAllObjects()) do
         table.insert(allObjects, obj)
     end
+
+    TEsound.cleanup()
 end
 
 function love.mousepressed(x, y, button, istouch)
