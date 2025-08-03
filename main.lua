@@ -39,6 +39,9 @@ local musicVol = 0.2
 -- CAMERA
 local cam = gamera.new(0, 0, WINDOWWIDTH*4, WINDOWHEIGHT)
 
+-- load in cusor
+
+
 
 function love.load()
     love.graphics.setDefaultFilter("nearest", "nearest")
@@ -84,14 +87,41 @@ function love.load()
 
     --cursor properties
     cursor = {}
-        cursor.x = 0
-        cursor.y = 0
-        cursor.sparkle = love.graphics.newImage('assets/art/animations/cursorSparklesB.png')
-        cursor.grid = anim8.newGrid(32,32, cursor.sparkle:getWidth(), cursor.sparkle:getHeight())
-        cursor.animationPlay = false
-        cursor.animations = {}
-            cursor.animations.leftClick = anim8.newAnimation(cursor.grid('1-4', 1), 0.2)
-    cursor.x, cursor.y =  love.mouse.getPosition()
+    cursor.x = 0
+    cursor.y = 0
+    
+    -- Load cursor sprites with error checking
+    local function loadCursorSprite(path, fallbackColor)
+        local success, sprite = pcall(love.graphics.newImage, path)
+        if success then
+            return sprite
+        else
+            print("Warning: Could not load cursor sprite: " .. path)
+            -- Create a simple colored rectangle as fallback
+            local canvas = love.graphics.newCanvas(16, 16)
+            love.graphics.setCanvas(canvas)
+            love.graphics.setColor(fallbackColor[1], fallbackColor[2], fallbackColor[3], 1)
+            love.graphics.rectangle("fill", 0, 0, 16, 16)
+            love.graphics.setCanvas()
+            return canvas
+        end
+    end
+    
+    cursor.default = loadCursorSprite("assets/art/cursors/default.png", {1, 1, 1})
+    cursor.move = loadCursorSprite("assets/art/cursors/move.png", {0, 1, 0})
+    cursor.select = loadCursorSprite("assets/art/cursors/select.png", {1, 1, 0})
+    cursor.scale = loadCursorSprite("assets/art/cursors/scale.png", {1, 0, 1})
+    
+    cursor.currentSprite = cursor.default
+    cursor.currentState = "default"
+    
+    -- Animation setup
+    cursor.sparkle = love.graphics.newImage('assets/art/animations/cursorSparklesB.png')
+    cursor.grid = anim8.newGrid(32,32, cursor.sparkle:getWidth(), cursor.sparkle:getHeight())
+    cursor.animationPlay = false
+    cursor.animations = {}
+    cursor.animations.leftClick = anim8.newAnimation(cursor.grid('1-4', 1), 0.2)
+    cursor.x, cursor.y = love.mouse.getPosition()
 
     sceneManager.init()
     sceneManager.startTransition(0)
@@ -105,6 +135,67 @@ function love.load()
     level1Track = "assets/audio/music/Level1.ogg"
     level2Track = "assets/audio/music/Level2.ogg"
     level3Track = "assets/audio/music/Level3.ogg"
+end
+
+function updateCursorState()
+    local worldX, worldY = cam:toWorld(love.mouse.getPosition())
+    
+    -- If we're currently dragging or scaling, show the appropriate cursor
+    if isMouseDragging then
+        if lasso_state == "dragging" then
+            cursor.currentState = "move"
+            cursor.currentSprite = cursor.move
+            return
+        elseif lasso_state == "scaling" then
+            cursor.currentState = "scale"
+            cursor.currentSprite = cursor.scale
+            return
+        elseif lasso_state == "selecting" then
+            cursor.currentState = "select"
+            cursor.currentSprite = cursor.select
+            return
+        end
+    end
+    
+    -- Check if hovering over selected object (when not dragging)
+    local hoveringSelected = false
+    for i, obj in ipairs(selectedObjects) do
+        if obj.x <= worldX and worldX <= obj.x + obj.width
+            and obj.y <= worldY and worldY <= obj.y + obj.height then
+            hoveringSelected = true
+            
+            -- Check if hovering over scale corner
+            local cornerSize = 10
+            if worldX >= (obj.x + obj.width - cornerSize) and worldX <= (obj.x + obj.width)
+                and worldY >= obj.y and worldY <= (obj.y + cornerSize) then
+                cursor.currentState = "scale"
+                cursor.currentSprite = cursor.scale
+                return
+            else
+                cursor.currentState = "move"
+                cursor.currentSprite = cursor.move
+                return
+            end
+        end
+    end
+    
+    -- Check if hovering over selectable object (when not hovering over selected)
+    local hoveringSelectable = false
+    for i, obj in ipairs(sceneManager.getCurrentLevelObjects()) do
+        if obj.x <= worldX and worldX <= obj.x + obj.width
+            and obj.y <= worldY and worldY <= obj.y + obj.height then
+            hoveringSelectable = true
+            break
+        end
+    end
+    
+    if hoveringSelectable then
+        cursor.currentState = "select"
+        cursor.currentSprite = cursor.select
+    else
+        cursor.currentState = "default"
+        cursor.currentSprite = cursor.default
+    end
 end
 
 function updateCamera()
@@ -153,6 +244,8 @@ function love.update(dt)
     -- diaalogue manager update
     dialogManager:update(dt)
 
+    updateCursorState()
+
     -- update scene transitions
     local isTransitioning = sceneManager.update(dt, world, player, WINDOWWIDTH, WINDOWHEIGHT, camera, allObjects)
     if isTransitioning then
@@ -194,6 +287,8 @@ end
 function love.mousepressed(x, y, button, istouch)
     local worldX, worldY = cam:toWorld(x, y)
 
+    updateCursorState()
+
     if sceneManager.isTransitioning() then 
         return     
     end
@@ -222,6 +317,7 @@ function love.mousepressed(x, y, button, istouch)
             then
                 lasso_state = "scaling"
                 isMouseDragging = true
+                 updateCursorState() 
                 scaleStartPos.x = worldX
                 scaleStartPos.y = worldY
                 return
@@ -231,6 +327,7 @@ function love.mousepressed(x, y, button, istouch)
             -- start draggin group
             lasso_state = "dragging"
             isMouseDragging = true
+             updateCursorState() 
 
             -- calculate offset for each selected object
             groupOffsets = {}
@@ -249,6 +346,7 @@ function love.mousepressed(x, y, button, istouch)
             selectedObjects = {}
             groupOffsets = {}
             lasso_state = "selecting"
+             updateCursorState() 
         end
 
         -- start lasso
@@ -343,6 +441,7 @@ function love.mousereleased(x, y, button, istouch)
     --end cursor animation
     cursor.animationPlay = false
 
+
     if isMouseDragging and lasso_state == "selecting" then
             local pos = {
                 x = math.min(firstCorner.x, secondCorner.x),
@@ -369,6 +468,7 @@ function love.mousereleased(x, y, button, istouch)
     end
     
     isMouseDragging = false
+     updateCursorState() 
 end
 
 function love.keypressed(key)
@@ -444,5 +544,9 @@ function love.draw()
 
     if cursor.animationPlay then
         cursor.animations.leftClick:draw(cursor.sparkle, cursor.x, cursor.y, nil, 2, 2)
+    else
+        -- Draw current cursor sprite
+        love.graphics.setColor(1, 1, 1, 1)
+        love.graphics.draw(cursor.currentSprite, cursor.x, cursor.y, 0, 1, 1)
     end
 end
