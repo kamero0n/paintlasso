@@ -9,12 +9,6 @@ local sceneManager = require "assets/tools/sceneManager"
 
 local WINDOWWIDTH, WINDOWHEIGHT = love.graphics.getDimensions()
 
---sprites for the wand tools
-wand = love.graphics.newImage('assets/art/sprites/toolSprites/wand.png')
-lassoTool = love.graphics.newImage('assets/art/sprites/toolSprites/lassoTool.png')
-moveTool = love.graphics.newImage('assets/art/sprites/toolSprites/moveTool.png')
-scaleTool = love.graphics.newImage('assets/art/sprites/toolSprites/scaleTool.png')
-
 -- check if mouse is being dragged
 local isMouseDragging = false
 
@@ -42,9 +36,14 @@ local cam = gamera.new(0, 0, WINDOWWIDTH*3.2, WINDOWHEIGHT)
 function love.load()
     love.graphics.setDefaultFilter("nearest", "nearest")
 
-    --cursor
-    cursor = love.mouse.newCursor('assets/art/sprites/toolSprites/wand.png', 10, 10)
-    love.mouse.setCursor(cursor)
+    --cursor sprites
+    wand = love.mouse.newCursor('assets/art/sprites/toolSprites/wand.png', 10, 10)
+    lassoTool = love.mouse.newCursor('assets/art/sprites/toolSprites/lassoTool.png', 10, 10)
+    moveTool = love.mouse.newCursor('assets/art/sprites/toolSprites/moveTool.png', 10, 10)
+    scaleTool = love.mouse.newCursor('assets/art/sprites/toolSprites/scaleTool.png', 10, 10)
+
+    --default cursor
+    love.mouse.setCursor(wand)
 
     world = wf.newWorld(0, 800) -- gravity down
     world:setGravity(0, 800)
@@ -237,9 +236,17 @@ function love.mousemoved(x, y, dx, dy, istouch)
     if isMouseDragging and lasso_state == "selecting" then
         secondCorner.x = worldX
         secondCorner.y = worldY
+
+        --sets cursor to lasso sprite
+        love.mouse.setCursor(lassoTool)
+    else
+        love.mouse.setCursor(wand)
     end
 
     if isMouseDragging and lasso_state == "dragging" then
+        --sets cursor to move tool sprite
+        love.mouse.setCursor(moveTool)
+
         for i, obj in ipairs(selectedObjects) do
             local offset = groupOffsets[obj]
             if offset then
@@ -266,6 +273,9 @@ function love.mousemoved(x, y, dx, dy, istouch)
     end
 
     if isMouseDragging and lasso_state == "scaling" then
+        --sets cursor to scale tool sprite
+        love.mouse.setCursor(scaleTool)
+
         -- calc dist from scale start pos
         local deltaX = worldX - scaleStartPos.x
         local deltaY = worldY - scaleStartPos.y
