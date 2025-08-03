@@ -9,6 +9,12 @@ local sceneManager = require "assets/tools/sceneManager"
 
 local WINDOWWIDTH, WINDOWHEIGHT = love.graphics.getDimensions()
 
+--sprites for the wand tools
+wand = love.graphics.newImage('assets/art/sprites/toolSprites/wand.png')
+lassoTool = love.graphics.newImage('assets/art/sprites/toolSprites/lassoTool.png')
+moveTool = love.graphics.newImage('assets/art/sprites/toolSprites/moveTool.png')
+scaleTool = love.graphics.newImage('assets/art/sprites/toolSprites/scaleTool.png')
+
 -- check if mouse is being dragged
 local isMouseDragging = false
 
@@ -35,6 +41,10 @@ local cam = gamera.new(0, 0, WINDOWWIDTH*3.2, WINDOWHEIGHT)
 
 function love.load()
     love.graphics.setDefaultFilter("nearest", "nearest")
+
+    --cursor
+    cursor = love.mouse.newCursor('assets/art/sprites/toolSprites/wand.png', 10, 10)
+    love.mouse.setCursor(cursor)
 
     world = wf.newWorld(0, 800) -- gravity down
     world:setGravity(0, 800)
