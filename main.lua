@@ -40,7 +40,8 @@ function love.load()
     world:setGravity(0, 800)
 
     -- dialogue font
-    font = love.graphics.newFont("assets/fonts/PublicPixel.ttf", 40) 
+    font = love.graphics.newFont("assets/fonts/PublicPixel.ttf", 70) 
+    smallerFont = love.graphics.newFont("assets/fonts/PublicPixel.ttf", 30) 
 
     firstCorner = {
         x = 0,
@@ -86,11 +87,10 @@ function love.load()
     cursor.x, cursor.y =  love.mouse.getPosition()
 
     sceneManager.init()
-    Level1.init(world)
 
-    for i, obj in ipairs(Level1.getAllObjects()) do
-        table.insert(allObjects, obj)
-    end
+    -- for i, obj in ipairs(Level1.getAllObjects()) do
+    --     table.insert(allObjects, obj)
+    -- end
 
 end
 
@@ -100,7 +100,9 @@ end
 
 function love.update(dt)
     -- world update
-    world:update(dt)
+    if sceneManager.getCurrentLevel() > 0 then
+        world:update(dt)
+    end
 
     -- update scene transitions
     local isTransitioning = sceneManager.update(dt, world, player, WINDOWWIDTH, WINDOWHEIGHT, camera, allObjects)
@@ -317,6 +319,12 @@ function love.mousereleased(x, y, button, istouch)
     isMouseDragging = false
 end
 
+function love.keypressed(key)
+    if sceneManager.getCurrentLevel() == 0 then
+        sceneManager.startGame()
+    end
+end
+
 function love.draw()
     world:draw()
 
@@ -328,7 +336,7 @@ function love.draw()
     cam:draw(function(l,t,w,h)
         -- draw world elements
         ---Level1.draw()
-          sceneManager.drawCurrentLevel()
+          sceneManager.drawCurrentLevel(WINDOWWIDTH, WINDOWHEIGHT, font)
 
     -- apply camera transform
 
@@ -349,10 +357,12 @@ function love.draw()
         end
 
         -- draw player
-        love.graphics.setColor(0, 0, 0.8, 1)
-        love.graphics.rectangle("fill", player.x, player.y, player.width, player.height)
+        if sceneManager.getCurrentLevel() > 0 then
+            love.graphics.setColor(0, 0, 0.8, 1)
+            love.graphics.rectangle("fill", player.x, player.y, player.width, player.height)
 
-        love.graphics.setColor(1, 1, 1, 1)
+            love.graphics.setColor(1, 1, 1, 1)
+        end
     end
     )
 
