@@ -5,10 +5,21 @@ require "assets/tools/utils"
 Level1 = {}
 
 --SPRITES
+--need background sprite
+local floorSprite = love.graphics.newImage("assets/art/sprites/level1Sprites/level1Floor.png")
 local dogPoopSprite = love.graphics.newImage("assets/art/sprites/level1Sprites/dogPoop.png")
 local trashCanSprite = love.graphics.newImage("assets/art/sprites/level1Sprites/trashcan.png")
 local trashCanLidSprite = love.graphics.newImage("assets/art/sprites/level1Sprites/trashCanLid.png")
-local floorSprite = love.graphics.newImage("assets/art/sprites/level1Sprites/floor.png")
+local sprinklerSprite = love.graphics.newImage("assets/art/sprites/level1Sprites/sprinkler.png")
+local crazyDogSprite = love.graphics.newImage("assets/art/sprites/level1Sprites/crazyDog.png")
+--need npc sprite
+local kiddieSlideSprite = love.graphics.newImage("assets/art/sprites/level1Sprites/kiddieSlide.png")
+local cardboardBoxSprite = love.graphics.newImage("assets/art/sprites/level1Sprites/cardboardBox.png")
+local catSprite = love.graphics.newImage("assets/art/sprites/level1Sprites/cat.png")
+local yourDogSprite = love.graphics.newImage("assets/art/sprites/level1Sprites/dog.png")
+
+
+
 
 -- window stuff
 local WINDOWWIDTH, WINDOWHEIGHT = love.graphics.getDimensions()
