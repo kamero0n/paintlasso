@@ -152,14 +152,6 @@ function love.mousepressed(x, y, button, istouch)
         return     
     end
 
-    if button == 1 and dialogManager:getActiveDialog() ~= nil then
-        if dialogManager:getActiveDialog().done then
-            dialogManager:pop()
-        else
-            dialogManager:complete()
-        end
-        return
-    end
 
     if button == 1  then
         --cursor animation play
@@ -349,8 +341,7 @@ function love.keypressed(key)
         end
     end
 
-
-    if sceneManager.getCurrentLevel() == 0 then
+    if sceneManager.getCurrentLevel() == 0 and not sceneManager.isTransitioning() then
         sceneManager.startGame()
     end
 end

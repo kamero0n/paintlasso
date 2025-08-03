@@ -31,11 +31,12 @@ Utils.Dialogue = {}
 
 -- level 1 lines
 Utils.Dialogue.Level1 = {
-    opening = "Aw frick Chompy got out... ugh I guess I'll go outside... maybe I can put this wand to use.",
+    opening = "Aw frick Chompy got out, right when I needed to get milk... maybe I can put this wand to use.",
     poopWarning = "I dont wanna step on that... I already did by accident last week.",
     sprinklerWarning = "I don't feel like getting wet.",
-    ownerWarning = "... I dont think they're gonna stop talking to me",
-    dogInTree = "Aw frick, in the tree!?"
+    ownerWarning = "... I dont think they're gonna stop talking to me.",
+    dogInTree = "Aw frick, in the tree!? Maybe I can help him if he stops seeing the cat...",
+    fin = "Well, I guess this wands helps a ton. Might as well bring it to go and get some milk."
 }
 
 function Utils.Dialogue.initStates(dialogueLines)
