@@ -225,7 +225,7 @@ end
 
 function sceneManager.startGame()
     if current_level == 0 then
-        sceneManager.startTransition(1)
+        sceneManager.startTransition(2)
     end
 end
 
