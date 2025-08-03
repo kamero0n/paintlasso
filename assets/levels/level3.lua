@@ -3,6 +3,11 @@ require "assets/tools/utils"
 
 Level3 = {}
 
+--SPRITES
+--need background
+--need floor
+
+
 -- window stuff
 local WINDOWWIDTH, WINDOWHEIGHT = love.graphics.getDimensions()
 

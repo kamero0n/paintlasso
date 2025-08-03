@@ -3,6 +3,22 @@ require "assets/tools/utils"
 
 Level2 = {}
 
+--SPRITES
+--need background
+--need floor
+local candySprite = love.graphics.newImage('assets/sprites/level2Sprites/candy.png')
+local cerealSprite = love.graphics.newImage('assets/sprites/level2Sprites/cereal.png')
+local chipsSprite = love.graphics.newImage('assets/sprites/level2Sprites/chips.png')
+--need employee sprite
+local mountainDewSprite = love.graphics.newImage('assets/sprites/level2Sprites/mountainDew.png')
+--need child sprite
+--need mother sprite
+--need fat guy sprite
+local cokeSprite = love.graphics.newImage('assets/sprites/level2Sprites/coke.png')
+local orangeJuiceSprite = love.graphics.newImage('assets/sprites/level2Sprites/orangeJuice.png')
+local milkSprite = love.graphics.newImage('assets/sprites/level2Sprites/milk.png')
+
+
 -- window stuff
 local WINDOWWIDTH, WINDOWHEIGHT = love.graphics.getDimensions()
 
