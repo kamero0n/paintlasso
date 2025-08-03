@@ -4,6 +4,8 @@ require "assets/tools/utils"
 
 Level1 = {}
 
+--SPRITES
+
 -- window stuff
 local WINDOWWIDTH, WINDOWHEIGHT = love.graphics.getDimensions()
 
@@ -34,6 +36,12 @@ function Level1.init(world)
     -- create ground collider
     ground = world:newRectangleCollider(0, WINDOWHEIGHT - 300, WINDOWWIDTH * 4, 300)
     ground:setType('static')
+
+    --create create world boundaries
+    leftBoundary = world:newRectangleCollider(0, 0, 1, WINDOWHEIGHT)
+    leftBoundary:setType('static')
+    rightBoundary = world:newRectangleCollider(WINDOWWIDTH * 3, 0, 1, WINDOWHEIGHT)
+    rightBoundary:setType('static')
 
     -- create dog poop
     dogPoop = SelectableObject(300, WINDOWHEIGHT - 330, 25, 15, {0.4, 0.2, 0.1}, world, dogPoopSprite)
@@ -426,6 +434,7 @@ function Level1.draw()
     -- draw dog
     love.graphics.setColor(playerDog.color[1], playerDog.color[2], playerDog.color[3], 1)
     love.graphics.rectangle("fill", playerDog.x, playerDog.y, playerDog.width, playerDog.height)
+
 end
 
 function Level1.getObjects()
