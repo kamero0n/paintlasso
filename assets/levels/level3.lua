@@ -23,6 +23,17 @@ local guitarManBlockRadius = 80
 local requiredGuitarScale = 2.0
 local mouthAreaSize = 30
 
+-- crazy man
+local crazyMan
+local crazyManTimer = 5 -- only speak for like 10 seconds
+local crazyManCurrTime = 0
+local crazyManRadius = 80
+local crazyManAround = false
+local crazyManDone = false 
+local crazyManTriggered = false
+local crazyManMovingAway = false
+local crazyManMoveSpeed = 100
+
 function Level3.init(world)
     -- create ground collider
     ground = world:newRectangleCollider(0, WINDOWHEIGHT - 300, WINDOWWIDTH * 4, 300)
@@ -41,6 +52,9 @@ function Level3.init(world)
     guitar = SelectableObject(guitarMan.x - 40, guitarMan.y + 50, 80, 20, {0.8, 0.4, 0.1}, world)
     guitar.attachedToGuitarMan = true
     sock = SelectableObject(1150, WINDOWHEIGHT - 330, 25, 15, {0.3, 0.2, 0.1}, world)
+
+    --crazy man 
+    crazyMan = NPC(1700, WINDOWHEIGHT - 380, 40, 80, {0.2, 0.1, 0.5}, 0)
 
 end
 
@@ -99,6 +113,34 @@ local function updateGuitarManState()
     guitarManSolved = guitarManSilenced and guitarMadeBig 
 end
 
+local function updateCrazyManTimer(dt, player)
+    -- chceck if player is near
+    local playerNearCrazy = Utils.checkDist(player, crazyMan, crazyManRadius)
+
+    -- trigger timer when player first approaches
+    if playerNearCrazy and not crazyManTriggered and not crazyManDone then
+        crazyManTriggered = true
+        crazyManAround = true
+    end
+
+    -- once triggered keep timer running 
+    if crazyManTriggered and crazyManAround and not crazyManDone then
+        crazyManCurrTime = crazyManCurrTime  + dt
+
+        -- check if timer is complete
+        if crazyManCurrTime >= crazyManTimer then
+            crazyManDone = true
+            crazyManAround = false
+            crazyManMovingAway = true
+        end
+    end
+
+    -- move crazy man off screen
+    if crazyManMovingAway then
+        crazyMan.x = crazyMan.x - crazyManMoveSpeed * dt
+    end
+end
+
 function Level3.play(player, dt, selectedObj, lasso_state, isMouseDragging, allObjects)
     -- first puzzle --
     solicitor:update(dt)
@@ -155,6 +197,20 @@ function Level3.play(player, dt, selectedObj, lasso_state, isMouseDragging, allO
             player.x = guitarManCenterX - guitarManBlockRadius - player.width / 2
         end
     end
+
+    -- third event --
+    if guitarManSolved then
+        crazyMan:update(dt)
+
+        -- update crazy man timer and block player
+        updateCrazyManTimer(dt, player)
+
+        -- block player if crazy man is active
+        if crazyManAround and not crazyManDone and Utils.checkDist(player, crazyMan, crazyManRadius) then 
+            local crazyManCenterX = crazyMan.x + crazyMan.width/2
+            player.x = crazyManCenterX - crazyManRadius - player.width / 2
+        end
+    end
 end
 
 function Level3.draw()
@@ -178,6 +234,11 @@ function Level3.draw()
         guitar:draw()
 
         sock:draw()
+    end
+
+    -- draw crazy man
+    if guitarManSolved and crazyMan.x > -crazyMan.width then
+        crazyMan:draw()
     end
 end
 
@@ -212,9 +273,14 @@ function Level3.getAllObjects()
         table.insert(objects, guitarMan)
     end
 
+    if guitarManSolved and crazyMan.x > -crazyMan.width then
+        crazyMan.isSelectable = false
+        table.insert(objects, crazyMan)
+    end
+
     return objects
 end
 
 function Level3.isLevelSolved()
-    return signSmushedSolicitor and guitarManSilenced
+    return signSmushedSolicitor and guitarManSolved and crazyManDone
 end
