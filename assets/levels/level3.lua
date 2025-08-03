@@ -41,6 +41,7 @@ local numBasketballs = 3
 local guyBlockRadius = 80
 local guyMoved = false
 local mannequinComplete = false
+local weirdGuyPuzzleDone = false
 local mannequinZones = {}
 
 
@@ -338,6 +339,7 @@ function Level3.play(player, dt, selectedObj, lasso_state, isMouseDragging, allO
                 if weirdGuy.x <= weirdGuy.targetX then
                     weirdGuy.x = weirdGuy.targetX
                     weirdGuy.isMoving = false
+                    weirdGuyPuzzleDone = true
                 end
             end
         end
@@ -539,5 +541,5 @@ function Level3.getAllObjects()
 end
 
 function Level3.isLevelSolved()
-    return signSmushedSolicitor and guitarManSolved and crazyManDone and guyMoved
+    return signSmushedSolicitor and guitarManSolved and crazyManDone and weirdGuyPuzzleDone
 end

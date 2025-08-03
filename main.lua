@@ -18,7 +18,7 @@ local firstCorner, secondCorner
 -- scale start pos
 local scaleStartPos = {x = 0, y = 0}
 
--- offset values for selected object vs mouse
+-- offset values for selected object vs moucdse
 local offsetX, offsetY
 
 -- check the lasso tool state
