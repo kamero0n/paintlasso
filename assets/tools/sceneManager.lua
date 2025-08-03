@@ -143,6 +143,11 @@ function sceneManager.updateCurrentLevel(player, dt, selectedObjects, lasso_stat
         end
     elseif current_level == 3 then
         Level3.play(player, dt, selectedObjects, lasso_state, isMouseDragging, allObjects)
+
+        -- check if level 3 is complete
+        if Level3.isLevelSolved() then
+            
+        end
     end
 
 end

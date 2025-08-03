@@ -12,6 +12,11 @@ function Utils.checkDist(obj1, obj2, threshold)
 end
 
 function Utils.checkIfObjIsDragged(obj, selectedObjects, lasso_state, isMouseDragging)
+    -- very specific case for guitar dude
+    if obj.attachedToGuitarMan then
+        return false
+    end
+
     local isBeingDragged = false
     for j, selectedOBj in ipairs(selectedObjects) do
         if selectedOBj == obj and lasso_state == "dragging" and isMouseDragging then
