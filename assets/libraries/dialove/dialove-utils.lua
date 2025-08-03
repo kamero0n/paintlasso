@@ -138,32 +138,31 @@ utils.printText = function (manager, dialog, firstLine, lastLine, completeLine)
       lineX = lineX + dialog.image:getWidth() + manager.horizontalPadding
     end
 
-    if not line then goto continue end
-    lineY = dialog.y + manager.margin + manager.verticalPadding
+    if line then  -- Only process if line exists
+      lineY = dialog.y + manager.margin + manager.verticalPadding
 
-    love.graphics.setColor(dialog.textColor or manager.fgColor)
-    love.graphics.print(line:sub(1, (function ()
-      if completeLine then
-        return #line
-      else
-        return dialog.characterIndex
-      end
-    end)()),
-      lineX,
-      math.floor(lineY + (n - 1) * manager.lineHeight)
-    )
-
-    if manager.debug then
-      love.graphics.setColor(colors.red)
-      love.graphics.rectangle('line',
+      love.graphics.setColor(dialog.textColor or manager.fgColor)
+      love.graphics.print(line:sub(1, (function ()
+        if completeLine then
+          return #line
+        else
+          return dialog.characterIndex
+        end
+      end)()),
         lineX,
-        math.floor(lineY + (n - 1) * manager.lineHeight),
-        math.floor(manager.font:getWidth(line)),
-        math.floor(manager.lineHeight)
+        math.floor(lineY + (n - 1) * manager.lineHeight)
       )
-    end
 
-    ::continue::
+      if manager.debug then
+        love.graphics.setColor(colors.red)
+        love.graphics.rectangle('line',
+          lineX,
+          math.floor(lineY + (n - 1) * manager.lineHeight),
+          math.floor(manager.font:getWidth(line)),
+          math.floor(manager.lineHeight)
+        )
+      end
+    end
   end
 end
 

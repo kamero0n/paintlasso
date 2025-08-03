@@ -89,7 +89,7 @@ function love.load()
     cursor.x, cursor.y =  love.mouse.getPosition()
 
     sceneManager.init()
-    sceneManager.startTransition(3)
+    sceneManager.startTransition(0)
 
     -- init dialove
     dialogManager = dialove.init({
@@ -102,9 +102,6 @@ function updateCamera()
 end
 
 function love.update(dt)
-    print(WINDOWWIDTH)
-    print(WINDOWHEIGHT)
-
     -- world update
     if sceneManager.getCurrentLevel() > 0 then
         world:update(dt)

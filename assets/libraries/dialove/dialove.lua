@@ -286,38 +286,43 @@ function dialove:push(data)
 end
 
 function dialove:pop(forcePop)
-  if forcePop then goto tryPop end
+  -- Handle forced pop or check if current dialog can be popped
+  local canPop = forcePop
+  
+  if not forcePop then
+    if self:getActiveDialog() then
+      if not self:getActiveDialog().done then
+        return
+      end
 
-  if self:getActiveDialog() then
-    if not self:getActiveDialog().done then
-      return
+      if self:getActiveDialog().needsInput then
+        local action = self:getActiveDialog().options[self:getActiveDialog().selectedOptionIndex].action
+        self:getActiveDialog().executeAction(action)
+        return
+      end
     end
-
-    if self:getActiveDialog().needsInput then
-      local action = self:getActiveDialog().options[self:getActiveDialog().selectedOptionIndex].action
-      self:getActiveDialog().executeAction(action)
-      return
-    end
+    canPop = true
   end
 
-  ::tryPop::
-
-  if self:getActiveDialogList() and #self:getActiveDialogList() > 0 then
-    local dialogPopped = table.remove(self:getActiveDialogList(), 1)
-    self:setActiveDialog(dialogPopped)
-    timer.new('showNextCharacter', self.normalCharacterDelay)
-  else
-    self:setActiveDialog(nil)
-    repeat
-      if self.activeDialogListIndex >= 1 then
-        self.activeDialogListIndex = self.activeDialogListIndex - 1
-        table.remove(self.activeDialogListMap)
-      end
-    until not self:getActiveDialogList() or #self:getActiveDialogList() > 0
-
-    if self:getActiveDialogList() then
+  -- Try to pop a dialog
+  if canPop then
+    if self:getActiveDialogList() and #self:getActiveDialogList() > 0 then
       local dialogPopped = table.remove(self:getActiveDialogList(), 1)
       self:setActiveDialog(dialogPopped)
+      timer.new('showNextCharacter', self.normalCharacterDelay)
+    else
+      self:setActiveDialog(nil)
+      repeat
+        if self.activeDialogListIndex >= 1 then
+          self.activeDialogListIndex = self.activeDialogListIndex - 1
+          table.remove(self.activeDialogListMap)
+        end
+      until not self:getActiveDialogList() or #self:getActiveDialogList() > 0
+
+      if self:getActiveDialogList() then
+        local dialogPopped = table.remove(self:getActiveDialogList(), 1)
+        self:setActiveDialog(dialogPopped)
+      end
     end
   end
 end
