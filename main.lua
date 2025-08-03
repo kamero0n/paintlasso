@@ -34,7 +34,7 @@ local allObjects = {}
 
 -- audio stuff
 local currentMusicTrack = nil
-local musicVol = 0.5
+local musicVol = 0.2
 
 -- CAMERA
 local cam = gamera.new(0, 0, WINDOWWIDTH*4, WINDOWHEIGHT)

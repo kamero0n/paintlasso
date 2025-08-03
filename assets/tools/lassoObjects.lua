@@ -2,7 +2,7 @@ Object = require ("assets/libraries/classic")
 
 SelectableObject = Object:extend(Object)
 
-function SelectableObject:new(x, y, width, height, color, world)
+function SelectableObject:new(x, y, width, height, color, world, landingSound)
     self.x = x or 0
     self.y = y or 0
     self.width = width or 50
@@ -11,6 +11,7 @@ function SelectableObject:new(x, y, width, height, color, world)
     self.ogHeight = self.height
     self.color = color or {1, 1, 1}
     self.isSelected = false
+    self.landingSound = landingSound or nil
 
     -- simple physics
     self.velocityY = 0
@@ -64,6 +65,11 @@ function SelectableObject:update(dt, isBeingDragged, allObjects)
 
             if self.y + self.height > landingY then
                 self.y = landingY - self.height 
+
+                if not self.isGrounded and self.velocityY > 100 and self.landingSound then
+                    TEsound.play(self.landingSound, "static", "sfx", 0.2)
+                end
+                            
                 self.velocityY  = 0
                 self.isGrounded = true
             end

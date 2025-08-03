@@ -12,6 +12,17 @@ local dialogueStates
 local endDialogue = false
 local finalDialogueShown = false
 
+-- audio stuff
+local sprinklerSoundChannel = nil
+local dogBarkChannel = nil
+local personTalkingChannel = nil
+local treeDogWhimperChannel = nil
+local catHissChannel = nil
+local wasLidBeingDragged = false
+local wasBoxBeingDragged = false
+local wasSlideBeingDragged = false
+local wasPoopBeingDragged = false
+
 -- first puzzle stuff
 local dogPoop, trashCan, invisibleWall
 local dogPoopCleaned = false
@@ -37,12 +48,24 @@ local catTrapped = false
 function Level1.init(world)
     dialogueStates = Utils.Dialogue.initStates(Utils.Dialogue.Level1)
 
+    -- sound effects
+    poopSquish = "assets/audio/sound_effects/poopSquish.ogg"
+    defaultDrop = "assets/audio/sound_effects/defaultDrop.ogg"
+    dogBark = "assets/audio/sound_effects/dogBark.ogg"
+    personTalkin = "assets/audio/sound_effects/personTalkin.ogg"
+    sprinklerSFX = "assets/audio/sound_effects/sprinkler.ogg"
+    whineDog= "assets/audio/sound_effects/whineDog.ogg"
+    trashCanLidSFX = "assets/audio/sound_effects/trashCanLid.ogg"
+    catHiss = "assets/audio/sound_effects/catHiss.ogg"
+    bouncyBallSFX = "assets/audio/sound_effects/bouncyBall.ogg"
+    throwAwaySFX = "assets/audio/sound_effects/throwAway.ogg"
+
     -- create ground collider
     ground = world:newRectangleCollider(0, WINDOWHEIGHT - 300, WINDOWWIDTH * 4, 300)
     ground:setType('static')
 
     -- create dog poop
-    dogPoop = SelectableObject(300, WINDOWHEIGHT - 330, 25, 15, {0.4, 0.2, 0.1}, world)
+    dogPoop = SelectableObject(300, WINDOWHEIGHT - 330, 25, 15, {0.4, 0.2, 0.1}, world, poopSquish)
 
     -- create trash can 
     trashCan = {
@@ -54,7 +77,7 @@ function Level1.init(world)
     }
 
     -- create trashCanLid
-    trashCanLid = SelectableObject(PROGRESS_GATE_X + 50, WINDOWHEIGHT - 395, 70, 10, {0.5, 0.5, 0.5}, world)
+    trashCanLid = SelectableObject(PROGRESS_GATE_X + 50, WINDOWHEIGHT - 395, 70, 10, {0.5, 0.5, 0.5}, world, trashCanLidSFX)
 
     -- create sprinkler
     sprinkler = {
@@ -74,9 +97,9 @@ function Level1.init(world)
     invisibleWall:setType('static')
 
     -- create some balls
-    table.insert(bouncyBalls, BouncyBall(1015, WINDOWHEIGHT - 300, 15, {1, 0, 0}, world))
-    table.insert(bouncyBalls, BouncyBall(1030, WINDOWHEIGHT - 300, 15, {0, 1, 0}, world))
-    table.insert(bouncyBalls, BouncyBall(1045, WINDOWHEIGHT - 300, 15, {0, 0, 1}, world))
+    table.insert(bouncyBalls, BouncyBall(1015, WINDOWHEIGHT - 300, 15, {1, 0, 0}, world, bouncyBallSFX))
+    table.insert(bouncyBalls, BouncyBall(1030, WINDOWHEIGHT - 300, 15, {0, 1, 0}, world, bouncyBallSFX))
+    table.insert(bouncyBalls, BouncyBall(1045, WINDOWHEIGHT - 300, 15, {0, 0, 1}, world, bouncyBallSFX))
 
     -- create person
     person = NPC(1400, WINDOWHEIGHT - 380, 40, 80, {0.8, 0.6, 0.4}, 0) -- stationary for now...
@@ -115,10 +138,11 @@ function Level1.init(world)
     cat = NPC(1750, WINDOWHEIGHT - 330, 35, 30, {0.3, 0.3, 0.3}, 80)
 
     -- create box
-    box = SelectableObject(1650, WINDOWHEIGHT - 350, 50, 50, {0.6, 0.4, 0.2}, world)
+    box = SelectableObject(1650, WINDOWHEIGHT - 350, 50, 50, {0.6, 0.4, 0.2}, world, defaultDrop)
 
     -- create kiddieSlide
-    kiddieSlide = SelectableObject(1550, WINDOWHEIGHT - 370, 50, 70, {1, 0.2, 0.2}, world)
+    kiddieSlide = SelectableObject(1550, WINDOWHEIGHT - 370, 50, 70, {1, 0.2, 0.2}, world, defaultDrop)
+
 end
 
 local function isLidOnSprinkler()
@@ -170,6 +194,7 @@ function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
     if dogPoop then
         isPoopBeingDragged = Utils.checkIfObjIsDragged(dogPoop, selectedObjects, lasso_state, isMouseDragging)
     end
+    
     -- check if poop has been picked up
     if not dogPoopCleaned and not isPoopBeingDragged then
         -- check horizontal dist
@@ -182,6 +207,8 @@ function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
         local verticalDist = math.abs(poopBottom - trashTop)
 
         if verticalDist <= 5 and horizDist <= 30 then
+            TEsound.play(throwAwaySFX, "static", "sfx", 0.2)
+
             dogPoopCleaned = true
             -- remove invisibleWall
             if invisibleWall then
@@ -259,14 +286,61 @@ function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
         player.x = PROGRESS_GATE_X2 - player.width
     end
 
+     if sprinkler.active and sprinkler.currentRadius > 0 then
+        if not sprinklerSoundChannel then
+            sprinklerSoundChannel = TEsound.play(sprinklerSFX, "static", "sfx", 0.15)
+        end
+        -- adjust sprinkler volume based on coverage - but check if channel still exists
+        local volumeLevel = sprinkler.currentRadius / sprinklerBlockRadius * 0.15
+        if sprinklerSoundChannel and TEsound.channels[sprinklerSoundChannel] then
+            TEsound.volume(sprinklerSoundChannel, volumeLevel)
+        else
+            -- Channel was cleaned up, restart it
+            sprinklerSoundChannel = TEsound.play(sprinklerSFX, "static", "sfx", volumeLevel)
+        end
+    else
+        if sprinklerSoundChannel then
+            TEsound.stop(sprinklerSoundChannel)
+            sprinklerSoundChannel = nil
+        end
+    end
+
     -- third puzzle --
     for _, ball in ipairs(bouncyBalls) do
         local isBallBeingDragged = Utils.checkIfObjIsDragged(ball, selectedObjects, lasso_state, isMouseDragging)
         ball:update(dt, isBallBeingDragged, allObjects)
+
+        if ball.isGrounded and ball.velocityY > 10 then
+            TEsound.play(bouncyBallSFX, "static", "sfx", 0.3)
+        end
     end
 
     person:update(dt)
     dog:update(dt)
+
+    local dogPersonDistance = Utils.checkDist(player, dog, 200) or Utils.checkDist(player, person, 200)
+    
+    if not ballsDistracted and dogPersonDistance then
+        -- Start dog barking if not already playing
+        if not dogBarkChannel then
+            dogBarkChannel = TEsound.playLooping(dogBark, "static", "sfx", nil, 0.3)
+        end
+        -- Start person talking if not already playing
+        if not personTalkingChannel then
+            personTalkingChannel = TEsound.playLooping(personTalkin, "static", "sfx", nil, 0.2)
+        end
+    else
+        -- Stop sounds when player moves away or balls are distracted
+        if dogBarkChannel and TEsound.channels[dogBarkChannel] then
+        TEsound.stop(dogBarkChannel)
+        dogBarkChannel = nil
+        end
+        if personTalkingChannel and TEsound.channels[personTalkingChannel] then
+            TEsound.stop(personTalkingChannel)
+            personTalkingChannel = nil
+        end
+    end
+
 
     -- check if dog is distracted by balls
     local dogDistracted, closestBall = dog:isNearBalls(bouncyBalls, 100)
@@ -340,7 +414,9 @@ function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
     end
 
     if not playerDog.isRescued and Utils.checkDist(player, playerDog, 400) then
-        Utils.Dialogue.showOnce(dialogueStates, "dogInTree", Utils.Dialogue.Level1, "You")
+        if Utils.Dialogue.showOnce(dialogueStates, "dogInTree", Utils.Dialogue.Level1, "You") then
+            TEsound.play(whineDog, "static", "sfx", 0.3)
+        end
     end
 
     -- make box move if cat is trapped
@@ -360,6 +436,25 @@ function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
         -- move dog down slide
         playerDog.x  = kiddieSlide.x + kiddieSlide.width/2 - playerDog.width/2
         playerDog.y = WINDOWHEIGHT - 300 - playerDog.height
+    end
+
+    if not catTrapped and Utils.checkDist(player, cat, 80) then
+        if not catHissChannel then
+            catHissChannel = TEsound.playLooping(catHiss, "static", "sfx", nil, 0.25)
+        end
+    else
+        if catHissChannel and TEsound.channels[catHissChannel] then
+            TEsound.stop(catHissChannel)
+            catHissChannel = nil
+        end
+    end
+
+    if catTrapped and catHissChannel and TEsound.channels[catHissChannel] then
+        local currentVolume = 0.25
+        if isCatTrapped() then
+            currentVolume = currentVolume * 0.1 
+        end
+        TEsound.volume(catHissChannel, currentVolume)
     end
 
     if not catTrapped then

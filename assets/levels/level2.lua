@@ -40,6 +40,11 @@ local carriedDrink = nil
 
 function Level2.init(world)
     dialogueStates = Utils.Dialogue.initStates(Utils.Dialogue.Level2)
+
+    defaultDrop = "assets/audio/sound_effects/defaultDrop.ogg"
+    mother = "assets/audio/sound_effects/mommy.ogg"
+    thinkingSFX = "assets/audio/sound_effects/thinkingGuy.ogg"
+    cryingKid = "assets/audio/sound_effects/baby.ogg"
     
     -- create ground collider
     ground = world:newRectangleCollider(0, WINDOWHEIGHT - 300, WINDOWWIDTH * 4, 300)
@@ -49,9 +54,9 @@ function Level2.init(world)
     employee = NPC(400, WINDOWHEIGHT - 380, 40, 80, {0.2, 0.4, 0.8}, 40)
 
     -- items to stock
-    table.insert(items, SelectableObject(150, WINDOWHEIGHT - 330, 30, 30, {0.8, 0.2, 0.2}, world))
-    table.insert(items, SelectableObject(200, WINDOWHEIGHT - 335, 25, 35, {0.2, 0.8, 0.2}, world))
-    table.insert(items, SelectableObject(250, WINDOWHEIGHT - 340, 35, 40, {0.2, 0.2, 0.8}, world))
+    table.insert(items, SelectableObject(150, WINDOWHEIGHT - 330, 30, 30, {0.8, 0.2, 0.2}, world, defaultDrop))
+    table.insert(items, SelectableObject(200, WINDOWHEIGHT - 335, 25, 35, {0.2, 0.8, 0.2}, world, defaultDrop))
+    table.insert(items, SelectableObject(250, WINDOWHEIGHT - 340, 35, 40, {0.2, 0.2, 0.8}, world, defaultDrop))
 
     -- zone for item placement
     table.insert(targetZones, {
@@ -103,7 +108,8 @@ function Level2.init(world)
             50,
             30,
             {0.9, 0.7, 0.3},
-            world
+            world,
+            defaultDrop
         )
         box.isCerealBox = true
         table.insert(cerealBoxes, box)
@@ -141,7 +147,8 @@ function Level2.init(world)
             20,
             35,
             drinkColors[i],
-            world
+            world,
+            defaultDrop
         )
 
         drink.drinkType = i
@@ -313,6 +320,7 @@ function Level2.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
     if not shelfStacked and Utils.checkDist(player, employee, employeeBlockRadius) then
         if Utils.Dialogue.showOnce(dialogueStates, "employee", Utils.Dialogue.Level2, "Employee") then
             --  flag to show the response after this dialogue finishes
+            TEsound.play(thinkingSFX, "static", "sfx", 0.3) 
             dialogueStates["employeeResponsePending"] = true
         end
 
@@ -375,6 +383,7 @@ function Level2.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
         if not childFound and (nearChild or tryingToLeave) then
             if Utils.Dialogue.showOnce(dialogueStates, "kidCrying", Utils.Dialogue.Level2, "Kid") then
                 -- flag to show response after dialogue finishes
+                TEsound.play(cryingKid, "static", "sfx", 0.25)
                 dialogueStates["kidResponsePending"] = true
             end
         end
@@ -418,7 +427,9 @@ function Level2.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
 
         -- mom dialogue when appear on screen
         if momAppeared and mom.isVisible and mom.x < 1700  then
-            Utils.Dialogue.showOnce(dialogueStates, "momFindsKid", Utils.Dialogue.Level2, "Mom")
+            if Utils.Dialogue.showOnce(dialogueStates, "momFindsKid", Utils.Dialogue.Level2, "Mom") then
+                TEsound.play(mother, "static", "sfx", 0.3) 
+            end
         end
 
         -- mom walks in from the right
@@ -438,7 +449,9 @@ function Level2.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
         end
 
         if not fatGuyMoved and Utils.checkDist(player, fatGuy, fatGuyBlockRadius) then
-            Utils.Dialogue.showOnce(dialogueStates, "fatGuyClues", Utils.Dialogue.Level2, "Random Guy")
+            if Utils.Dialogue.showOnce(dialogueStates, "fatGuyClues", Utils.Dialogue.Level2, "Random Guy") then
+                TEsound.play(thinkingSFX, "static", "sfx", 0.3)
+            end
         else
             -- reset
             dialogueStates["fatGuyClues"] = false

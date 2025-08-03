@@ -73,7 +73,7 @@ dialove.init = function (data)
   dialove.defaultNumberOfLines = data.numberOfLines or dialove.defaultNumberOfLines
 
   dialove.fontH = dialove.font:getHeight()
-  dialove.typingSound:setVolume(data.typingVolume or 1)
+  dialove.typingSound:setVolume(data.typingVolume or 0.2)
 
   return setmetatable(d, dialove)
 end

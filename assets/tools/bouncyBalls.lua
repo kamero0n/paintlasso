@@ -2,7 +2,7 @@ require "assets/tools/lassoObjects"
 
 BouncyBall = SelectableObject:extend()
 
-function BouncyBall:new(x, y, radius, color, world)
+function BouncyBall:new(x, y, radius, color, world, landingSound)
     BouncyBall.super.new(self, x, y, radius * 2, radius * 2, color, world)
 
     self.radius = radius
@@ -12,6 +12,7 @@ function BouncyBall:new(x, y, radius, color, world)
     self.world = world
     self.chaseVelX = 0
     self.chaseVelY = 0
+    self.landingSound = landingSound or nil
 
     -- bouncing state
     self.isBouncing = false
