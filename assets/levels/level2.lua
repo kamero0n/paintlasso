@@ -11,8 +11,8 @@ local cerealSprite = love.graphics.newImage('assets/art/sprites/level2Sprites/ce
 local chipsSprite = love.graphics.newImage('assets/art/sprites/level2Sprites/chips.png')
 --need employee sprite
 local mountainDewSprite = love.graphics.newImage('assets/art/sprites/level2Sprites/mountainDew.png')
---need child sprite
---need mother sprite
+--local cryingKidSprite = love.graphics.newImage('assets/art/sprites/level2Sprites/cryingKid.png')
+--local momSprite = love.graphics.newImage('assets/art/sprites/level2Sprites/mom.png')
 --need fat guy sprite
 local cokeSprite = love.graphics.newImage('assets/art/sprites/level2Sprites/coke.png')
 local orangeJuiceSprite = love.graphics.newImage('assets/art/sprites/level2Sprites/orangeJuice.png')
@@ -98,7 +98,7 @@ function Level2.init(world)
     end
 
     -- add the crying child
-    child = NPC(1000, WINDOWHEIGHT - 350, 40, 50, {0.3, 0.4, 0.9}, 5)
+    child = NPC(1000, WINDOWHEIGHT - 350, 40, 50, {1, 1, 1}, 5)
     child.velocityY = 0
     child.gravity = 800
     child.groundY = WINDOWHEIGHT - 300
@@ -120,7 +120,7 @@ function Level2.init(world)
     end
 
     -- mom npc
-    mom = NPC(1800, WINDOWHEIGHT - 380, 40, 80, {0.8, 0.3, 0.6}, 0)
+    mom = NPC(1800, WINDOWHEIGHT - 380, 40, 80, {1, 1, 1}, 0)
     mom.isVisible = false
     mom.speed = 200 -- RUN to the child
 
