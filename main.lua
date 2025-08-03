@@ -5,7 +5,8 @@ require "assets/levels/level3"
 anim8 = require 'assets/libraries/anim8'
 gamera = require 'assets/libraries/gamera'
 wf = require "assets/libraries/windfield"
-local sceneManager = require "assets/tools/sceneManager"
+sceneManager = require "assets/tools/sceneManager"
+dialove = require "assets/libraries/dialove"
 
 local WINDOWWIDTH, WINDOWHEIGHT = love.graphics.getDimensions()
 
@@ -88,10 +89,10 @@ function love.load()
 
     sceneManager.init()
 
-    -- for i, obj in ipairs(Level1.getAllObjects()) do
-    --     table.insert(allObjects, obj)
-    -- end
-
+    -- init dialove
+    dialogManager = dialove.init({
+        font = love.graphics.newFont("assets/libraries/dialove/fonts/proggy-tiny/ProggyTiny.ttf", 45) 
+    })
 end
 
 function updateCamera()
@@ -103,6 +104,9 @@ function love.update(dt)
     if sceneManager.getCurrentLevel() > 0 then
         world:update(dt)
     end
+
+    -- diaalogue manager update
+    dialogManager:update(dt)
 
     -- update scene transitions
     local isTransitioning = sceneManager.update(dt, world, player, WINDOWWIDTH, WINDOWHEIGHT, camera, allObjects)
@@ -329,7 +333,7 @@ function love.draw()
     world:draw()
 
     -- set target canvas
-    love.graphics.setCanvas(gameCanvas)
+    love.graphics.setCanvas{gameCanvas}
     love.graphics.clear(0, 0, 0, 1)
 
     --put everything you want drawn and gamera transforms it automatically
@@ -370,8 +374,10 @@ function love.draw()
     -- draw the canvas
     love.graphics.draw(gameCanvas, 0, 0);
 
-    -- draw scene transition overal
+    -- draw scene transition overall
     sceneManager.draw(WINDOWWIDTH, WINDOWHEIGHT)
+
+    dialogManager:draw()
 
     if cursor.animationPlay then
         cursor.animations.leftClick:draw(cursor.sparkle, cursor.x, cursor.y, nil, 2, 2)
