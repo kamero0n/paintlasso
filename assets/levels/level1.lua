@@ -6,7 +6,7 @@ Level1 = {}
 
 --SPRITES
 local backgroundLevel1Sprite = love.graphics.newImage("assets/art/sprites/level1Sprites/backgroundLevel1.png")
-local floorSprite = love.graphics.newImage("assets/art/sprites/level1Sprites/level1Floor.png")
+local floorLevel1Sprite = love.graphics.newImage("assets/art/sprites/level1Sprites/floorLevel1.png")
 local dogPoopSprite = love.graphics.newImage("assets/art/sprites/level1Sprites/dogPoop.png")
 local trashCanSprite = love.graphics.newImage("assets/art/sprites/level1Sprites/trashcan.png")
 local trashCanLidSprite = love.graphics.newImage("assets/art/sprites/level1Sprites/trashCanLid.png")
@@ -370,7 +370,7 @@ function Level1.draw()
     -- floor
     love.graphics.setColor(1, 1, 1, 1)
     love.graphics.rectangle("fill", 0, WINDOWHEIGHT - 300, WINDOWWIDTH * 4, 300)
-    love.graphics.draw(floorSprite, 0, WINDOWHEIGHT - 300)
+    love.graphics.draw(floorLevel1Sprite, 0, WINDOWHEIGHT - 300)
 
     -- draw objects
     if not dogPoopCleaned then
@@ -434,7 +434,6 @@ function Level1.draw()
     kiddieSlide:draw()
     -- draw dog
     love.graphics.setColor(1, 1, 1, 1)
-    --love.graphics.rectangle("fill", playerDog.x, playerDog.y, playerDog.width, playerDog.height)
     love.graphics.draw(yourDogSprite, playerDog.x, playerDog.y, 0, playerDog.width/yourDogSprite:getWidth(), playerDog.height/yourDogSprite:getHeight())
 end
 

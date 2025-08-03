@@ -4,8 +4,8 @@ require "assets/tools/utils"
 Level2 = {}
 
 --SPRITES
---need background
---need floor
+local backgroundLevel2Sprite = love.graphics.newImage('assets/art/sprites/level2Sprites/backgroundLevel2.png')
+local floorLevel2Sprite = love.graphics.newImage('assets/art/sprites/level2Sprites/floorLevel2.png')
 local candySprite = love.graphics.newImage('assets/art/sprites/level2Sprites/candy.png')
 local cerealSprite = love.graphics.newImage('assets/art/sprites/level2Sprites/cereal.png')
 local chipsSprite = love.graphics.newImage('assets/art/sprites/level2Sprites/chips.png')
@@ -454,9 +454,14 @@ function Level2.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
 end
 
 function Level2.draw()
+    --background
+    love.graphics.setColor(1, 1, 1, 1)
+    love.graphics.draw(backgroundLevel2Sprite, 0, 0)
+
     -- floor
     love.graphics.setColor(1, 1, 1, 1)
-    love.graphics.rectangle("fill", 0, WINDOWHEIGHT - 300, WINDOWWIDTH * 4, 300)
+    love.graphics.rectangle("fill", 0, WINDOWHEIGHT - 300, WINDOWWIDTH * 3.2, 300)
+    love.graphics.draw(floorLevel2Sprite, 0, WINDOWHEIGHT - 300)
 
     -- create shelves
     love.graphics.setColor(0.6, 0.4, 0.2, 1)

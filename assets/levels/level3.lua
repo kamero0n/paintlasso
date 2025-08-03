@@ -4,8 +4,8 @@ require "assets/tools/utils"
 Level3 = {}
 
 --SPRITES
---need background
---need floor
+local backgroundLevel3Sprite = love.graphics.newImage('assets/art/sprites/level3Sprites/backgroundLevel3.png')
+local floorLevel3Sprite = love.graphics.newImage('assets/art/sprites/level3Sprites/floorLevel3.png')
 local marketSignSprite = love.graphics.newImage('assets/art/sprites/level3Sprites/marketSign.png')
 --need solicitor sprite
 local guitarSprite = love.graphics.newImage('assets/art/sprites/level3Sprites/guitar.png')
@@ -432,9 +432,14 @@ function Level3.play(player, dt, selectedObj, lasso_state, isMouseDragging, allO
 end
 
 function Level3.draw()
+    --background
+    love.graphics.setColor(1, 1, 1, 1)
+    love.graphics.draw(backgroundLevel3Sprite, 0, 0)
+
     -- floor
     love.graphics.setColor(1, 1, 1, 1)
     love.graphics.rectangle("fill", 0, WINDOWHEIGHT - 300, WINDOWWIDTH * 4, 300)
+    love.graphics.draw(floorLevel3Sprite, 0, WINDOWHEIGHT - 300)
 
     -- draw solicitor
     if not solicitor.isGone then
