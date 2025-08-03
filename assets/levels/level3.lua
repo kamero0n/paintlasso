@@ -10,6 +10,10 @@ local WINDOWWIDTH, WINDOWHEIGHT = love.graphics.getDimensions()
 local dialogueStates
 local endDialogue = false
 local finalDialogueShown = false
+local solicitorTalkingChannel = nil
+local guitarPlayingChannel = nil
+local guySingingChannel = nil
+local creepyGuyChannel = nil
 
 -- first puzzle stuff
 local solicitor, sign
@@ -53,6 +57,13 @@ local mannequinZones = {}
 function Level3.init(world)
     dialogueStates = Utils.Dialogue.initStates(Utils.Dialogue.Level3)
 
+    defaultDrop = "assets/audio/sound_effects/defaultDrop.ogg"
+    creepyGuy = "assets/audio/sound_effects/creep.ogg"
+    guySinging = "assets/audio/sound_effects/guySinging.ogg"
+    guitarPlaying = "assets/audio/sound_effects/guitarPlaying.ogg"
+    solicitorTalking = "assets/audio/sound_effects/solicitorMan.ogg"
+    frenchMan = "assets/audio/sound_effects/frenchMan.ogg"
+
     -- create ground collider
     ground = world:newRectangleCollider(0, WINDOWHEIGHT - 300, WINDOWWIDTH * 4, 300)
     ground:setType('static')
@@ -63,13 +74,13 @@ function Level3.init(world)
     solicitor.isSmushing = false
     
     -- sign 
-    sign = SelectableObject(50, WINDOWHEIGHT - 480, 150, 50, {0.8, 0.2, 0.8}, world)
+    sign = SelectableObject(50, WINDOWHEIGHT - 480, 150, 50, {0.8, 0.2, 0.8}, world, defaultDrop)
 
     -- guitarMan
     guitarMan = NPC(1000, WINDOWHEIGHT - 400, 40, 100, {0.6, 0.1, 0.9}, 0)
-    guitar = SelectableObject(guitarMan.x - 40, guitarMan.y + 50, 80, 20, {0.8, 0.4, 0.1}, world)
+    guitar = SelectableObject(guitarMan.x - 40, guitarMan.y + 50, 80, 20, {0.8, 0.4, 0.1}, world, defaultDrop)
     guitar.attachedToGuitarMan = true
-    sock = SelectableObject(1150, WINDOWHEIGHT - 330, 25, 15, {0.3, 0.2, 0.1}, world)
+    sock = SelectableObject(1150, WINDOWHEIGHT - 330, 25, 15, {0.3, 0.2, 0.1}, world, defaultDrop)
 
     --crazy man 
     crazyMan = NPC(1700, WINDOWHEIGHT - 380, 40, 80, {0.2, 0.1, 0.5}, 0)
@@ -94,18 +105,19 @@ function Level3.init(world)
             25,
             25,
             {0.8, 0.4, 0.1},
-            world
+            world,
+            defaultDrop
         )
         ball.isBasketball = true
         table.insert(basketballs, ball)
     end
 
     -- box for torso
-    box = SelectableObject(2300, WINDOWHEIGHT - 350, 35, 40, {0.6, 0.4, 0.2}, world)
+    box = SelectableObject(2300, WINDOWHEIGHT - 350, 35, 40, {0.6, 0.4, 0.2}, world, defaultDrop)
     box.isBox = true
 
     -- mop head for hair
-    mopHead = SelectableObject(2100, WINDOWHEIGHT - 330, 30 , 20, {0.3, 0.2, 0.1}, world)
+    mopHead = SelectableObject(2100, WINDOWHEIGHT - 330, 30 , 20, {0.3, 0.2, 0.1}, world, defaultDrop)
     mopHead.isMophead = true
 
     -- define zones for mannequin
@@ -270,6 +282,17 @@ function Level3.play(player, dt, selectedObj, lasso_state, isMouseDragging, allO
     -- first puzzle --
     solicitor:update(dt)
 
+    -- solicitor audio
+    if not signSmushedSolicitor and Utils.checkDist(player, solicitor, solicitorBlockRadius) then
+        if not solicitorTalkingChannel then
+            solicitorTalkingChannel = TEsound.playLooping(solicitorTalking, "static", "sfx", nil, 0.3)
+        end
+    else
+            if solicitorTalkingChannel and TEsound.channels[solicitorTalkingChannel] then
+                TEsound.stop(solicitorTalkingChannel)
+                solicitorTalkingChannel = nil
+            end
+    end
 
     -- block player if solicitor not gone
     if not signSmushedSolicitor and Utils.checkDist(player, solicitor, solicitorBlockRadius) then
@@ -349,11 +372,18 @@ function Level3.play(player, dt, selectedObj, lasso_state, isMouseDragging, allO
             if guitarManSilenced and guitarMadeBig then
                 Utils.Dialogue.showOnce(dialogueStates, "leaveSingingMan", Utils.Dialogue.Level3, "You")
             elseif guitarManSilenced then
-                Utils.Dialogue.showOnce(dialogueStates, "singingManWithSock", Utils.Dialogue.Level3, "Guitar Man")
+                if Utils.Dialogue.showOnce(dialogueStates, "singingManWithSock", Utils.Dialogue.Level3, "Guitar Man") then
+                    TEsound.play(guitarPlaying, "static", "sfx", 0.3)
+                end
             elseif guitarMadeBig then
-                Utils.Dialogue.showOnce(dialogueStates, "singingManWithBigGuitar", Utils.Dialogue.Level3, "Guitar Man")
+                if Utils.Dialogue.showOnce(dialogueStates, "singingManWithBigGuitar", Utils.Dialogue.Level3, "Guitar Man") then
+                    TEsound.play(guySinging, "static", "sfx", 0.3)
+                end
             else
-                Utils.Dialogue.showOnce(dialogueStates, "singingManFree", Utils.Dialogue.Level3, "Guitar Man")
+                if Utils.Dialogue.showOnce(dialogueStates, "singingManFree", Utils.Dialogue.Level3, "Guitar Man") then
+                    TEsound.play(guySinging, "static", "sfx", 0.3)
+                    TEsound.play(guitarPlaying, "static", "sfx", 0.3)
+                end
             end
 
             -- only block the player if they haven't solved both parts of the puzzle
@@ -379,11 +409,15 @@ function Level3.play(player, dt, selectedObj, lasso_state, isMouseDragging, allO
 
         -- block player if crazy man is active
         if crazyManAround and not crazyManDone and Utils.checkDist(player, crazyMan, crazyManRadius) then 
+            if Utils.Dialogue.showOnce(dialogueStates, "afterFrenchManLeaves", Utils.Dialogue.Level3, "You") then
+                TEsound.play(frenchMan, "static", "sfx", 0.4)
+            end
             local crazyManCenterX = crazyMan.x + crazyMan.width/2
             player.x = crazyManCenterX - crazyManRadius - player.width / 2
         end
 
         if crazyManDone and not dialogueStates["afterFrenchPlayed"] then
+            TEsound.stop("sfx")
             Utils.Dialogue.showOnce(dialogueStates, "afterFrenchManLeaves", Utils.Dialogue.Level3, "You")
             dialogueStates["afterFrenchPlayed"] = true
         end
@@ -395,6 +429,8 @@ function Level3.play(player, dt, selectedObj, lasso_state, isMouseDragging, allO
 
         if not guyMoved and Utils.checkDist(player, weirdGuy, guyBlockRadius) then
             if Utils.Dialogue.showOnce(dialogueStates, "creepTriesToHit", Utils.Dialogue.Level3, "Creep") then
+                TEsound.play(creepyGuy, "static", "sfx", 0.3)
+
                 dialogueStates["creepResponsePending"] = true
             end
 
@@ -488,6 +524,7 @@ function Level3.play(player, dt, selectedObj, lasso_state, isMouseDragging, allO
 
         if  weirdGuy.isMoving and not dialogueStates["creepMannequinPlayed"] then
             Utils.Dialogue.showOnce(dialogueStates, "creepHitsOnMannequin", Utils.Dialogue.Level3, "Creep")
+            TEsound.play(creepyGuy, "static", "sfx", 0.3)
             dialogueStates["creepMannequinPlayed"] = true
         end
 
