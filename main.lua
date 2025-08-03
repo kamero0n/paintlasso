@@ -143,8 +143,8 @@ function love.update(dt)
         player.x = 0
     end
 
-    if player.x > WINDOWWIDTH * 3.2 then
-        player.x = WINDOWWIDTH * 3.2
+    if player.x + player.width > WINDOWWIDTH * 3.2 then
+        player.x = WINDOWWIDTH * 3.2 - player.width
     end
 end
 

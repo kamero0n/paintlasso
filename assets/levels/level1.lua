@@ -92,7 +92,7 @@ function Level1.init(world)
     person = NPC(1400, WINDOWHEIGHT - 380, 40, 80, {0.8, 0.6, 0.4}, 0) -- stationary for now...
 
     -- create dog
-    dog = NPC(1350, WINDOWHEIGHT - 340, 50, 40, {0.6, 0.4, 0.2}, 100) -- moves a bit back and forth
+    dog = NPC(1350, WINDOWHEIGHT - 340, 50, 40, {0.6, 0.4, 0.2}, 100, crazyDogSprite) -- moves a bit back and forth
 
     -- create tree base
     treeBase = {
@@ -122,13 +122,13 @@ function Level1.init(world)
     }
 
     -- catto
-    cat = NPC(1750, WINDOWHEIGHT - 330, 35, 30, {0.3, 0.3, 0.3}, 80)
+    cat = NPC(1750, WINDOWHEIGHT - 330, 35, 30, {0.3, 0.3, 0.3}, 80, catSprite)
 
     -- create box
-    box = SelectableObject(1650, WINDOWHEIGHT - 350, 50, 50, {0.6, 0.4, 0.2}, world)
+    box = SelectableObject(1650, WINDOWHEIGHT - 350, 50, 50, {0.6, 0.4, 0.2}, world, cardboardBoxSprite)
 
     -- create kiddieSlide
-    kiddieSlide = SelectableObject(1550, WINDOWHEIGHT - 370, 50, 70, {1, 0.2, 0.2}, world)
+    kiddieSlide = SelectableObject(1550, WINDOWHEIGHT - 370, 50, 70, {1, 0.2, 0.2}, world, kiddieSlideSprite)
 end
 
 local function isLidOnSprinkler()
@@ -433,9 +433,9 @@ function Level1.draw()
     
     kiddieSlide:draw()
     -- draw dog
-    love.graphics.setColor(playerDog.color[1], playerDog.color[2], playerDog.color[3], 1)
-    love.graphics.rectangle("fill", playerDog.x, playerDog.y, playerDog.width, playerDog.height)
-
+    love.graphics.setColor(1, 1, 1, 1)
+    --love.graphics.rectangle("fill", playerDog.x, playerDog.y, playerDog.width, playerDog.height)
+    love.graphics.draw(yourDogSprite, playerDog.x, playerDog.y, 0, playerDog.width/yourDogSprite:getWidth(), playerDog.height/yourDogSprite:getHeight())
 end
 
 function Level1.getObjects()
