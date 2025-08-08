@@ -11,8 +11,8 @@ local cerealSprite = love.graphics.newImage('assets/art/sprites/level2Sprites/ce
 local chipsSprite = love.graphics.newImage('assets/art/sprites/level2Sprites/chips.png')
 --need employee sprite
 local mountainDewSprite = love.graphics.newImage('assets/art/sprites/level2Sprites/mountainDew.png')
---local cryingKidSprite = love.graphics.newImage('assets/art/sprites/level2Sprites/cryingKid.png')
---local momSprite = love.graphics.newImage('assets/art/sprites/level2Sprites/mom.png')
+--need crying kid sprite
+--need mom sprite
 --need fat guy sprite
 local cokeSprite = love.graphics.newImage('assets/art/sprites/level2Sprites/coke.png')
 local orangeJuiceSprite = love.graphics.newImage('assets/art/sprites/level2Sprites/orangeJuice.png')
