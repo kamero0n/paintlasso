@@ -3,6 +3,21 @@ require "assets/tools/utils"
 
 Level2 = {}
 
+--SPRITES
+local backgroundLevel2Sprite = love.graphics.newImage('assets/art/sprites/level2Sprites/backgroundLevel2.png')
+local floorLevel2Sprite = love.graphics.newImage('assets/art/sprites/level2Sprites/floorLevel2.png')
+local candySprite = love.graphics.newImage('assets/art/sprites/level2Sprites/candy.png')
+local cerealSprite = love.graphics.newImage('assets/art/sprites/level2Sprites/cereal.png')
+local chipsSprite = love.graphics.newImage('assets/art/sprites/level2Sprites/chips.png')
+--need employee sprite
+local mountainDewSprite = love.graphics.newImage('assets/art/sprites/level2Sprites/mountainDew.png')
+--need crying kid sprite
+--need mom sprite
+--need fat guy sprite
+local cokeSprite = love.graphics.newImage('assets/art/sprites/level2Sprites/coke.png')
+local orangeJuiceSprite = love.graphics.newImage('assets/art/sprites/level2Sprites/orangeJuice.png')
+local milkSprite = love.graphics.newImage('assets/art/sprites/level2Sprites/milk.png')
+
 -- window stuff
 local WINDOWWIDTH, WINDOWHEIGHT = love.graphics.getDimensions()
 
@@ -54,9 +69,9 @@ function Level2.init(world)
     employee = NPC(400, WINDOWHEIGHT - 380, 40, 80, {0.2, 0.4, 0.8}, 40)
 
     -- items to stock
-    table.insert(items, SelectableObject(150, WINDOWHEIGHT - 330, 30, 30, {0.8, 0.2, 0.2}, world, defaultDrop))
-    table.insert(items, SelectableObject(200, WINDOWHEIGHT - 335, 25, 35, {0.2, 0.8, 0.2}, world, defaultDrop))
-    table.insert(items, SelectableObject(250, WINDOWHEIGHT - 340, 35, 40, {0.2, 0.2, 0.8}, world, defaultDrop))
+    table.insert(items, SelectableObject(150, WINDOWHEIGHT - 330, 30, 30, {0.8, 0.2, 0.2}, world, defaultDrop, cerealSprite))
+    table.insert(items, SelectableObject(200, WINDOWHEIGHT - 335, 25, 35, {0.2, 0.8, 0.2}, world, defaultDrop, candySprite))
+    table.insert(items, SelectableObject(250, WINDOWHEIGHT - 340, 35, 40, {0.2, 0.2, 0.8}, world, defaultDrop, chipsSprite))
 
     -- zone for item placement
     table.insert(targetZones, {
@@ -100,7 +115,7 @@ function Level2.init(world)
     child.groundY = WINDOWHEIGHT - 300
     child.isGrounded = false
 
-    -- add cereal boxes
+    -- add cereal boxes (they were actually mountain dew boxes in my head)
     for i = 1, numCerealBoxes do
         local box = SelectableObject(
             880 + (i * 60),
@@ -109,7 +124,8 @@ function Level2.init(world)
             30,
             {0.9, 0.7, 0.3},
             world,
-            defaultDrop
+            defaultDrop,
+            mountainDewSprite
         )
         box.isCerealBox = true
         table.insert(cerealBoxes, box)
@@ -517,9 +533,14 @@ function Level2.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
 end
 
 function Level2.draw()
-    -- floor
+    --background
     love.graphics.setColor(1, 1, 1, 1)
-    love.graphics.rectangle("fill", 0, WINDOWHEIGHT - 300, WINDOWWIDTH * 4, 300)
+    love.graphics.draw(backgroundLevel2Sprite, 0, 0)
+
+    --floor
+    love.graphics.setColor(1, 1, 1, 1)
+    love.graphics.rectangle("fill", 0, WINDOWHEIGHT - 300, WINDOWWIDTH * 3.2, 300)
+    love.graphics.draw(floorLevel2Sprite, 0, WINDOWHEIGHT - 300)
 
     -- create shelves
     love.graphics.setColor(0.6, 0.4, 0.2, 1)

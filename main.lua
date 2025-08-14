@@ -37,7 +37,7 @@ local currentMusicTrack = nil
 local musicVol = 0.2
 
 -- CAMERA
-local cam = gamera.new(0, 0, WINDOWWIDTH*4, WINDOWHEIGHT)
+local cam = gamera.new(0, 0, WINDOWWIDTH*3.2, WINDOWHEIGHT)
 
 -- load in cusor
 
@@ -279,6 +279,15 @@ function love.update(dt)
     allObjects = {}
     for i, obj in ipairs(sceneManager.getCurrentLevelAllObjects()) do
         table.insert(allObjects, obj)
+    end
+
+    --keep player in world boundaries
+    if player.x < 0 then
+        player.x = 0
+    end
+
+    if player.x + player.width > WINDOWWIDTH * 3.2 then
+        player.x = WINDOWWIDTH * 3.2 - player.width
     end
 
     TEsound.cleanup()

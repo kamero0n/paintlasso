@@ -4,6 +4,20 @@ require "assets/tools/utils"
 
 Level1 = {}
 
+--SPRITES
+local backgroundLevel1Sprite = love.graphics.newImage("assets/art/sprites/level1Sprites/backgroundLevel1.png")
+local floorLevel1Sprite = love.graphics.newImage("assets/art/sprites/level1Sprites/floorLevel1.png")
+local dogPoopSprite = love.graphics.newImage("assets/art/sprites/level1Sprites/dogPoop.png")
+local trashCanSprite = love.graphics.newImage("assets/art/sprites/level1Sprites/trashcan.png")
+local trashCanLidSprite = love.graphics.newImage("assets/art/sprites/level1Sprites/trashCanLid.png")
+local sprinklerSprite = love.graphics.newImage("assets/art/sprites/level1Sprites/sprinkler.png")
+local crazyDogSprite = love.graphics.newImage("assets/art/sprites/level1Sprites/crazyDog.png")
+--need npc sprite
+local kiddieSlideSprite = love.graphics.newImage("assets/art/sprites/level1Sprites/kiddieSlide.png")
+local cardboardBoxSprite = love.graphics.newImage("assets/art/sprites/level1Sprites/cardboardBox.png")
+local catSprite = love.graphics.newImage("assets/art/sprites/level1Sprites/cat.png")
+local yourDogSprite = love.graphics.newImage("assets/art/sprites/level1Sprites/dog.png")
+
 -- window stuff
 local WINDOWWIDTH, WINDOWHEIGHT = love.graphics.getDimensions()
 
@@ -64,8 +78,14 @@ function Level1.init(world)
     ground = world:newRectangleCollider(0, WINDOWHEIGHT - 300, WINDOWWIDTH * 4, 300)
     ground:setType('static')
 
+    --create create world boundaries
+    leftBoundary = world:newRectangleCollider(0, 0, 1, WINDOWHEIGHT)
+    leftBoundary:setType('static')
+    rightBoundary = world:newRectangleCollider(WINDOWWIDTH * 3, 0, 1, WINDOWHEIGHT)
+    rightBoundary:setType('static')
+
     -- create dog poop
-    dogPoop = SelectableObject(300, WINDOWHEIGHT - 330, 25, 15, {0.4, 0.2, 0.1}, world, poopSquish)
+    dogPoop = SelectableObject(300, WINDOWHEIGHT - 330, 25, 15, {0.4, 0.2, 0.1}, world, poopSquish, dogPoopSprite)
 
     -- create trash can 
     trashCan = {
@@ -105,7 +125,7 @@ function Level1.init(world)
     person = NPC(1400, WINDOWHEIGHT - 380, 40, 80, {0.8, 0.6, 0.4}, 0) -- stationary for now...
 
     -- create dog
-    dog = NPC(1350, WINDOWHEIGHT - 340, 50, 40, {0.6, 0.4, 0.2}, 100) -- moves a bit back and forth
+    dog = NPC(1350, WINDOWHEIGHT - 340, 50, 40, {0.6, 0.4, 0.2}, 100, crazyDogSprite) -- moves a bit back and forth
 
     -- create tree base
     treeBase = {
@@ -135,13 +155,13 @@ function Level1.init(world)
     }
 
     -- catto
-    cat = NPC(1750, WINDOWHEIGHT - 330, 35, 30, {0.3, 0.3, 0.3}, 80)
+    cat = NPC(1750, WINDOWHEIGHT - 330, 35, 30, {0.3, 0.3, 0.3}, 80, catSprite)
 
     -- create box
-    box = SelectableObject(1650, WINDOWHEIGHT - 350, 50, 50, {0.6, 0.4, 0.2}, world, defaultDrop)
+    box = SelectableObject(1650, WINDOWHEIGHT - 350, 50, 50, {0.6, 0.4, 0.2}, world, defaultDrop, cardboardBoxSprite)
 
     -- create kiddieSlide
-    kiddieSlide = SelectableObject(1550, WINDOWHEIGHT - 370, 50, 70, {1, 0.2, 0.2}, world, defaultDrop)
+    kiddieSlide = SelectableObject(1550, WINDOWHEIGHT - 370, 50, 70, {1, 0.2, 0.2}, world, defaultDrop, kiddieSlideSprite)
 
 end
 
@@ -485,9 +505,13 @@ function Level1.play(player, dt, selectedObjects, lasso_state, isMouseDragging, 
 end
 
 function Level1.draw()
-    -- floor
+    --background
+    love.graphics.setColor(1, 1, 1, 1)
+    love.graphics.draw(backgroundLevel1Sprite, 0, 0)
+    --floor
     love.graphics.setColor(1, 1, 1, 1)
     love.graphics.rectangle("fill", 0, WINDOWHEIGHT - 300, WINDOWWIDTH * 4, 300)
+    love.graphics.draw(floorLevel1Sprite, 0, WINDOWHEIGHT - 300)
 
     -- draw objects
     if not dogPoopCleaned then
@@ -500,16 +524,16 @@ function Level1.draw()
         love.graphics.circle("fill", poopCenterX, poopCenterY, poopThreshold)
     end
 
-    -- draw trash can
-    love.graphics.setColor(trashCan.color[1], trashCan.color[2], trashCan.color[3], 1)
-    love.graphics.rectangle("fill", trashCan.x, trashCan.y, trashCan.width, trashCan.height)
+    --draw trash can
+    love.graphics.setColor(1, 1, 1, 1)
+    love.graphics.draw(trashCanSprite, trashCan.x, trashCan.y + 17, nil, 2, 2)
 
     -- draw trashCan lid
     trashCanLid:draw()
 
-    -- draw sprinkler
+    --draw sprinkler
     love.graphics.setColor(sprinkler.color[1], sprinkler.color[2], sprinkler.color[3])
-    love.graphics.rectangle("fill", sprinkler.x, sprinkler.y, sprinkler.width, sprinkler.height)
+    love.graphics.draw(sprinklerSprite, sprinkler.x, sprinkler.y, 0, sprinkler.width/sprinklerSprite:getWidth(), sprinkler.height/sprinklerSprite:getHeight())
 
     -- draw simple spray
     if sprinkler.active and sprinkler.currentRadius > 0.5 then
@@ -549,9 +573,9 @@ function Level1.draw()
     box:draw()
     
     kiddieSlide:draw()
-    -- draw dog
-    love.graphics.setColor(playerDog.color[1], playerDog.color[2], playerDog.color[3], 1)
-    love.graphics.rectangle("fill", playerDog.x, playerDog.y, playerDog.width, playerDog.height)
+    --draw dog
+    love.graphics.setColor(1, 1, 1, 1)
+    love.graphics.draw(yourDogSprite, playerDog.x, playerDog.y, 0, playerDog.width/yourDogSprite:getWidth(), playerDog.height/yourDogSprite:getHeight())
 end
 
 function Level1.getObjects()

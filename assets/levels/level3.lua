@@ -3,7 +3,20 @@ require "assets/tools/utils"
 
 Level3 = {}
 
+--SPRITES
+local backgroundLevel3Sprite = love.graphics.newImage('assets/art/sprites/level3Sprites/backgroundLevel3.png')
+local floorLevel3Sprite = love.graphics.newImage('assets/art/sprites/level3Sprites/floorLevel3.png')
+local marketSignSprite = love.graphics.newImage('assets/art/sprites/level3Sprites/marketSign.png')
+--need solicitor sprite
+local guitarSprite = love.graphics.newImage('assets/art/sprites/level3Sprites/guitar.png')
+local sockSprite = love.graphics.newImage('assets/art/sprites/level3Sprites/sock.png')
+--need guitar player sprite
+--need crazy guy on street sprite
+--need mannequin sprite
+local basketballSprite = love.graphics.newImage('assets/art/sprites/level3Sprites/basketball.png')
+--need rizzful guy sprite
 -- window stuff
+
 local WINDOWWIDTH, WINDOWHEIGHT = love.graphics.getDimensions()
 
 -- dialogue stuffs
@@ -74,13 +87,13 @@ function Level3.init(world)
     solicitor.isSmushing = false
     
     -- sign 
-    sign = SelectableObject(50, WINDOWHEIGHT - 480, 150, 50, {0.8, 0.2, 0.8}, world, defaultDrop)
+    sign = SelectableObject(50, WINDOWHEIGHT - 480, 150, 50, {1, 1, 1}, world, defaultDrop, marketSignSprite)
 
     -- guitarMan
     guitarMan = NPC(1000, WINDOWHEIGHT - 400, 40, 100, {0.6, 0.1, 0.9}, 0)
-    guitar = SelectableObject(guitarMan.x - 40, guitarMan.y + 50, 80, 20, {0.8, 0.4, 0.1}, world, defaultDrop)
+    guitar = SelectableObject(guitarMan.x - 40, guitarMan.y + 50, 80, 20, {1, 1, 1}, world, defaultDrop, guitarSprite)
     guitar.attachedToGuitarMan = true
-    sock = SelectableObject(1150, WINDOWHEIGHT - 330, 25, 15, {0.3, 0.2, 0.1}, world, defaultDrop)
+    sock = SelectableObject(1150, WINDOWHEIGHT - 330, 25, 15, {1, 1, 1}, world, defaultDrop, sockSprite)
 
     --crazy man 
     crazyMan = NPC(1700, WINDOWHEIGHT - 380, 40, 80, {0.2, 0.1, 0.5}, 0)
@@ -541,9 +554,14 @@ function Level3.play(player, dt, selectedObj, lasso_state, isMouseDragging, allO
 end
 
 function Level3.draw()
-    -- floor
+    --background
+    love.graphics.setColor(1, 1, 1, 1)
+    love.graphics.draw(backgroundLevel3Sprite, 0, 0)
+
+    --floor
     love.graphics.setColor(1, 1, 1, 1)
     love.graphics.rectangle("fill", 0, WINDOWHEIGHT - 300, WINDOWWIDTH * 4, 300)
+    love.graphics.draw(floorLevel3Sprite, 0, WINDOWHEIGHT - 300)
 
     -- draw solicitor
     if not solicitor.isGone then

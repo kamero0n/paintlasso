@@ -2,7 +2,7 @@ Object = require ("assets/libraries/classic")
 
 SelectableObject = Object:extend(Object)
 
-function SelectableObject:new(x, y, width, height, color, world, landingSound)
+function SelectableObject:new(x, y, width, height, color, world, landingSound, sprite)
     self.x = x or 0
     self.y = y or 0
     self.width = width or 50
@@ -12,6 +12,9 @@ function SelectableObject:new(x, y, width, height, color, world, landingSound)
     self.color = color or {1, 1, 1}
     self.isSelected = false
     self.landingSound = landingSound or nil
+
+    --sprite
+    self.sprite = sprite or nil
 
     -- simple physics
     self.velocityY = 0
@@ -113,10 +116,14 @@ function SelectableObject:draw()
         love.graphics.setColor(1, 1, 0, 1)
         love.graphics.rectangle("line", self.x - 2, self.y - 2, self.width + 4, self.height + 4)
     end
-
-    -- draw object
+    
+    --draw object
     love.graphics.setColor(self.color[1], self.color[2], self.color[3], 1)
-    love.graphics.rectangle("fill", self.x, self.y, self.width, self.height)
+    if self.sprite then
+        love.graphics.draw(self.sprite, self.x, self.y, 0, self.width/self.sprite:getWidth(), self.height/self.sprite:getHeight())
+    else
+        love.graphics.rectangle("fill", self.x, self.y, self.width, self.height)
+    end
 end
 
 function check_collision(a, b)

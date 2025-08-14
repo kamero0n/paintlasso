@@ -2,13 +2,16 @@ Object = require ("assets/libraries/classic")
 
 NPC = Object:extend()
 
-function NPC:new(x, y, width, height, color, moveRange)
+function NPC:new(x, y, width, height, color, moveRange, sprite)
     self.x = x
     self.y = y 
     self.width = width
     self.height = height
     self.color = color or {0.5, 0.5, 0.5}
 
+    --sprite
+    self.sprite = sprite or nil
+    
     -- movement 
     self.startX = x
     self.moveRange = moveRange or 0
@@ -42,7 +45,13 @@ end
 
 function NPC:draw()
     love.graphics.setColor(self.color[1], self.color[2], self.color[3], 1)
-    love.graphics.rectangle("fill", self.x, self.y, self.width, self.height)
+    
+    --draw srpite
+    if self.sprite then
+        love.graphics.draw(self.sprite, self.x, self.y, 0, self.width/self.sprite:getWidth(), self.height/self.sprite:getHeight())
+    else
+        love.graphics.rectangle("fill", self.x, self.y, self.width, self.height)
+    end
 end
 
 function NPC:isNearBalls(balls, threshold)
